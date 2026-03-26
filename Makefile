@@ -1,7 +1,20 @@
-INPUT   ?= input.md        # Chat log to parse
-ITERS   ?= 1000            # Number of training iterations
-BATCH   ?= 1               # Training batch size
-MAX_SEQ ?= 650             # Maximum sequence length in tokens
+INPUT   ?= input.md   # Chat log to parse into training data.
+
+ITERS   ?= 1000       # Number of training steps. More iterations means longer
+                      # training and potentially better results, but with
+                      # diminishing returns and risk of overfitting (where the
+                      # model memorizes the training data instead of learning
+                      # general patterns).
+
+BATCH   ?= 1          # Number of training examples processed per step. Higher
+                      # values use more memory but produce more stable gradient
+                      # updates. On Apple Silicon, 1 is typical due to memory
+                      # constraints.
+
+MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
+                      # longer than this are truncated. Lower values reduce
+                      # memory usage but may cut off context that the model
+                      # needs to learn from.
 
 .PHONY: all run clean
 
