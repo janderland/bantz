@@ -82,10 +82,10 @@ clean:
 
 build/.parse-params: FORCE
 	@mkdir -p build
-	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ || printf 'WINDOW=%s\n' '$(WINDOW)' > $@
+	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ \
+		|| printf 'WINDOW=%s\n' '$(WINDOW)' > $@
 
 build/.train-params: FORCE
 	@mkdir -p build
-	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' \
-		| cmp -s - $@ \
+	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ \
 		|| printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
