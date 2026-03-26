@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse chat.md into JSONL training data for mlx-lm."""
+"""Parse a chat log into JSONL training data for mlx-lm."""
 
 import argparse
 import json
@@ -15,8 +15,6 @@ URL = re.compile(r"https?://\S+")
 IMG = re.compile(r"!?\[.*?\]\(.*?\)")
 MEDIA = "\ufffc"  # object replacement character
 
-# Number of messages to use as context for each training example.
-WINDOW = 6
 
 
 @dataclass
@@ -96,7 +94,7 @@ def format_message(msg: Message) -> str:
     return result
 
 
-def make_training_examples(messages: list[Message]) -> list[dict]:
+def make_training_examples(messages: list[Message], window: int) -> list[dict]:
     formatted = [format_message(msg) for msg in messages]
 
     examples = []
@@ -108,16 +106,16 @@ def make_training_examples(messages: list[Message]) -> list[dict]:
         if msg.reply_to >= 0:
             # Reply example: context window ending with the original message.
             orig = msg.reply_to
-            start = max(0, orig - WINDOW + 1)
+            start = max(0, orig - window + 1)
             ctx = [t for t in formatted[start : orig + 1] if t]
             if not ctx:
                 continue
             context = "\n".join(ctx)
         else:
             # Standalone example: sliding window of prior messages.
-            if i < WINDOW:
+            if i < window:
                 continue
-            ctx = [t for t in formatted[i - WINDOW : i] if t]
+            ctx = [t for t in formatted[i - window : i] if t]
             if not ctx:
                 continue
             context = "\n".join(ctx)
@@ -134,6 +132,8 @@ def main():
     parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
     parser.add_argument("-f", "--map-file", metavar="FILE", type=Path, default=Path("usermap"),
                         help="File of OLD=NEW mappings, one per line (default: usermap)")
+    parser.add_argument("-w", "--window", type=int, default=6, metavar="N",
+                        help="Number of preceding messages used as context (default: 6)")
     args = parser.parse_args()
 
     usermap = {}
@@ -160,7 +160,7 @@ def main():
     replies = sum(1 for m in messages if m.reply_to >= 0)
     print(f"  Resolved {replies} replies")
 
-    examples = make_training_examples(messages)
+    examples = make_training_examples(messages, args.window)
     print(f"  Generated {len(examples)} training examples")
 
     out_path.write_text("\n".join(json.dumps(e) for e in examples), encoding="utf-8")

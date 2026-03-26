@@ -1,5 +1,10 @@
 INPUT   ?= input.md   # Chat log to parse into training data.
 
+WINDOW  ?= 6          # Number of preceding messages included as context for
+                      # each training example. Larger values give the model
+                      # more conversational context to learn from, but produce
+                      # longer examples which use more memory and slow training.
+
 ITERS   ?= 1000       # Number of training steps. More iterations means longer
                       # training and potentially better results, but with
                       # diminishing returns and risk of overfitting (where the
@@ -39,7 +44,7 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 
 build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py
 	mkdir -p build/data
-	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl
+	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
 
 build/.train: build/data/train.jsonl scripts/train.sh
 	mkdir -p build/adapters
