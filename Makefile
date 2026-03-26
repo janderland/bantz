@@ -42,6 +42,12 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
+# Parameter stamp files: each file stores the current values of the parameters
+# for its step. FORCE ensures the recipe always runs to check the values, but
+# the file is only written (and thus made newer than its dependents) when the
+# values have actually changed. This triggers a rebuild of the affected step
+# without requiring a full Makefile dependency.
+
 build/.parse-params: FORCE
 	@mkdir -p build
 	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ || printf 'WINDOW=%s\n' '$(WINDOW)' > $@
