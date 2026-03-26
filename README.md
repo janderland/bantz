@@ -91,7 +91,8 @@ RealName=Bob
 ## Build Pipeline
 
 All output goes into `build/`, which is gitignored. Steps only re-run when
-their inputs change.
+their inputs change. Editing the Makefile (e.g. changing a parameter) will
+trigger a rebuild of the affected steps.
 
 | Target | Description |
 |--------|-------------|
@@ -102,6 +103,22 @@ their inputs change.
 | `make gguf` | Convert to GGUF and register with Ollama |
 | `make run PROMPT="..."` | Generate a conversation |
 | `make clean` | Delete `build/`, `.venv/`, and `llama.cpp/.venv/` |
+
+### Parameters
+
+The following variables can be overridden on the command line:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `INPUT` | `input.md` | Chat log to parse |
+| `WINDOW` | `6` | Number of preceding messages used as context per training example |
+| `ITERS` | `1000` | Number of training steps |
+| `BATCH` | `1` | Training batch size |
+| `MAX_SEQ` | `650` | Maximum sequence length in tokens |
+
+```sh
+make WINDOW=10 ITERS=2000 MAX_SEQ=1024
+```
 
 ## Inference
 
