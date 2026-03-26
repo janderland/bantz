@@ -18,7 +18,7 @@ build/.venv-llama: llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 
 build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py
 	mkdir -p build/data
-	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl $(MAP)
+	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl
 
 build/.train: build/data/train.jsonl scripts/train.sh
 	mkdir -p build/adapters

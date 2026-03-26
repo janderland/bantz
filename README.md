@@ -61,14 +61,6 @@ RealName=Bob
 # lines starting with # are ignored
 ```
 
-Additional one-off mappings can be passed on the command line:
-
-```sh
-make parse MAP="-m OldName=NewName"
-```
-
-Command-line mappings take precedence over the `usermap` file.
-
 ## Build Pipeline
 
 All output goes into `build/`, which is gitignored. Steps only re-run when

@@ -132,8 +132,6 @@ def main():
     parser = argparse.ArgumentParser(description="Parse chat log into JSONL training data.")
     parser.add_argument("input", type=Path, help="Input chat log file")
     parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
-    parser.add_argument("-m", "--map", metavar="OLD=NEW", action="append", default=[],
-                        help="Map a username (can be repeated, e.g. -m Me=Alice -m Bob=Carol)")
     parser.add_argument("-f", "--map-file", metavar="FILE", type=Path, default=Path("usermap"),
                         help="File of OLD=NEW mappings, one per line (default: usermap)")
     args = parser.parse_args()
@@ -150,12 +148,6 @@ def main():
                 sys.exit(1)
             old, new = line.split("=", 1)
             usermap[old.strip()] = new.strip()
-    for entry in args.map:
-        if "=" not in entry:
-            print(f"Error: invalid mapping {entry!r}, expected OLD=NEW")
-            sys.exit(1)
-        old, new = entry.split("=", 1)
-        usermap[old] = new
 
     chat_path = args.input
     out_path = args.output
