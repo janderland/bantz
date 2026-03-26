@@ -21,7 +21,7 @@ MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
                       # memory usage but may cut off context that the model
                       # needs to learn from.
 
-.PHONY: all run clean
+.PHONY: all run clean FORCE
 
 all: build/.ollama
 
@@ -42,11 +42,19 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
-build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py Makefile
+build/.parse-params: FORCE
+	@mkdir -p build
+	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ || printf 'WINDOW=%s\n' '$(WINDOW)' > $@
+
+build/.train-params: FORCE
+	@mkdir -p build
+	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ || printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
+
+build/data/train.jsonl: build/.venv build/.parse-params $(INPUT) scripts/parse.py
 	mkdir -p build/data
 	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
 
-build/.train: build/data/train.jsonl scripts/train.sh Makefile
+build/.train: build/data/train.jsonl build/.train-params scripts/train.sh
 	mkdir -p build/adapters
 	bash scripts/train.sh $(ITERS) $(BATCH) $(MAX_SEQ)
 	touch build/.train
