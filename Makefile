@@ -42,11 +42,11 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
-build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py
+build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py Makefile
 	mkdir -p build/data
 	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
 
-build/.train: build/data/train.jsonl scripts/train.sh
+build/.train: build/data/train.jsonl scripts/train.sh Makefile
 	mkdir -p build/adapters
 	bash scripts/train.sh $(ITERS) $(BATCH) $(MAX_SEQ)
 	touch build/.train
