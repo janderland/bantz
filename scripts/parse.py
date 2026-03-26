@@ -122,8 +122,8 @@ def make_training_examples(messages: list[Message]) -> list[dict]:
                 continue
             context = "\n".join(ctx)
 
-        prompt = f"<|im_start|>user\n{context}\n<|im_end|>\n<|im_start|>assistant\n"
-        examples.append({"prompt": prompt, "completion": f"{completion}<|im_end|>"})
+        prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{context}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+        examples.append({"prompt": prompt, "completion": f"{completion}<|eot_id|>"})
 
     return examples
 
