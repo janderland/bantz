@@ -1,4 +1,8 @@
-INPUT ?= input.md
+INPUT   ?= input.md
+MODEL   ?= mlx-community/Llama-3.2-3B-Instruct
+ITERS   ?= 1000
+BATCH   ?= 1
+MAX_SEQ ?= 650
 
 .PHONY: all run clean
 
@@ -27,7 +31,7 @@ build/data/train.jsonl: build/.venv $(INPUT) scripts/parse.py
 
 build/.train: build/data/train.jsonl scripts/train.sh
 	mkdir -p build/adapters
-	bash scripts/train.sh
+	bash scripts/train.sh $(MODEL) $(ITERS) $(BATCH) $(MAX_SEQ)
 	touch build/.train
 
 build/.fuse: build/.train scripts/fuse.sh

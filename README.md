@@ -125,12 +125,3 @@ The formatter strips special tokens, detects speaker lines, quotes, and
 reactions, and renders them as a structured terminal transcript. See
 [SPEC.md](SPEC.md) for the full formatting specification.
 
-## Model Details
-
-| Setting | Value |
-|---------|-------|
-| Base model | `mlx-community/Llama-3.2-3B-Instruct` |
-| Fine-tuning | LoRA, 1000 iterations, batch size 1 |
-| Max sequence length | 650 tokens |
-| Context window | 65536 tokens |
-| Output format | `<|eot_id|>`-terminated ChatML turns |
