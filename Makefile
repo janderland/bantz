@@ -24,6 +24,10 @@ MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
 .PHONY: all run clean FORCE
 
 all: build/.ollama
+parse: build/data/train.jsonl
+train: build/.train
+fuse: build/.fuse
+gguf: build/.gguf
 
 build/.venv: requirements.txt
 	mkdir -p build
@@ -41,20 +45,6 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	python3.10 -m venv llama.cpp/.venv
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
-
-# Parameter stamp files: each file stores the current values of the parameters
-# for its step. FORCE ensures the recipe always runs to check the values, but
-# the file is only written (and thus made newer than its dependents) when the
-# values have actually changed. This triggers a rebuild of the affected step
-# without requiring a full Makefile dependency.
-
-build/.parse-params: FORCE
-	@mkdir -p build
-	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ || printf 'WINDOW=%s\n' '$(WINDOW)' > $@
-
-build/.train-params: FORCE
-	@mkdir -p build
-	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ || printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
 
 build/data/train.jsonl: build/.venv build/.parse-params $(INPUT) scripts/parse.py
 	mkdir -p build/data
@@ -79,13 +69,23 @@ build/.ollama: build/.gguf Modelfile
 	ollama create bantz -f Modelfile
 	touch build/.ollama
 
-parse: build/data/train.jsonl
-train: build/.train
-fuse: build/.fuse
-gguf: build/.gguf
-
 run: build/.ollama build/.venv
 	. .venv/bin/activate && python3 scripts/chat.py $(PROMPT)
 
 clean:
 	rm -rf build .venv llama.cpp/.venv
+
+# Parameter stamp files: each file stores the current values of the parameters
+# for its step. FORCE ensures the recipe always runs to check the values, but
+# the file is only written (and thus made newer than its dependents) when the
+# values have actually changed. This triggers a rebuild of the affected step.
+
+build/.parse-params: FORCE
+	@mkdir -p build
+	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ || printf 'WINDOW=%s\n' '$(WINDOW)' > $@
+
+build/.train-params: FORCE
+	@mkdir -p build
+	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' \
+		| cmp -s - $@ \
+		|| printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
