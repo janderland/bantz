@@ -34,21 +34,48 @@ This builds the full pipeline if needed, then streams a generated conversation.
 
 ### Chat log (`input.md`)
 
-The input file is a chat export in the following format:
-
-```
-[YYYY-MM-DD HH:MM:SS] Username: message text
-optional continuation line
--reaction emoji-
-> quoted text from another message
-```
-
 Place your chat log at `input.md` in the repo root (it is gitignored), or
 pass a custom path:
 
 ```sh
 make INPUT=path/to/export.md
 ```
+
+Each message begins with a header line, followed by zero or more content lines:
+
+```
+[YYYY-MM-DD HH:MM:SS] Username: optional first line
+body line
+> quoted text from a previous message
+(-👍 😂 ❤️-)
+```
+
+**Header** (required, starts a new message):
+```
+[YYYY-MM-DD HH:MM:SS] Username: optional text
+```
+Any text after the colon becomes the first body line of the message.
+
+**Body lines**: Any non-blank line that isn't a reaction or quote. Added to
+the message body in order.
+
+**Quote lines**: Must start with `> `. Added to the message body. The first
+quote line is also used to link the message as a reply to the original.
+Multiple quote lines are allowed.
+
+**Reaction lines**: Must match `(-content-)` at the start of the line.
+The content between `(-` and `-)` is captured as-is — multiple reactions can
+be included within one pair, e.g. `(-👍 😂-)` or `(-👍, 😂, ❤️-)`. Only
+one reaction line per message is kept; if multiple appear, the last one wins.
+Reactions are stored separately from the body and are not included in the
+message text.
+
+**Blank lines**: Ignored anywhere in the input.
+
+Lines before the first header are ignored. URLs, image markdown, and the
+Unicode object replacement character (U+FFFC) are stripped from the body
+before the training data is written. Messages whose body is empty after
+stripping are excluded entirely.
 
 ### Username mapping (`usermap`)
 
