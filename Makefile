@@ -10,7 +10,12 @@ build/.venv: requirements.txt
 	.venv/bin/pip install -r requirements.txt
 	touch build/.venv
 
-build/.venv-llama: llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
+build/.submodules:
+	mkdir -p build
+	git submodule update --init
+	touch build/.submodules
+
+build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	mkdir -p build
 	python3.10 -m venv llama.cpp/.venv
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
