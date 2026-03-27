@@ -1,10 +1,10 @@
 source .venv/bin/activate
 
 mlx_lm.lora \
-  --model mlx-community/Llama-3.2-3B-Instruct \
+  --model "$1" \
   --data build/data \
   --adapter-path build/adapters \
   --train \
-  --iters "$1" \
-  --batch-size "$2" \
-  --max-seq-length "$3"
+  --iters "$2" \
+  --batch-size "$3" \
+  --max-seq-length "$4"

@@ -1,6 +1,14 @@
-INPUT   ?= input.md      # Chat log to parse into training data.
+INPUT ?= input.md   # Chat log to parse into training data.
 
-MODEL   ?= llama3.1:8b  # Ollama model used for chat analysis.
+BASE_MODEL ?= mlx-community/Llama-3.2-3B-Instruct  # HuggingFace model to fine-tune. This must
+                                                   # be a HuggingFace model ID in the format
+                                                   # "org/model-name". MLX-compatible models can
+                                                   # be found at huggingface.co/mlx-community.
+
+ANALYSIS_MODEL ?= llama3.1:8b                      # Ollama model used for chat analysis. This
+                                                   # must be an Ollama model name in the format
+                                                   # "name:tag". Available models can be found
+                                                   # at ollama.com/library.
 
 WINDOW  ?= 6          # Number of preceding messages included as context for
                       # each training example. Larger values give the model
@@ -22,6 +30,9 @@ MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
                       # longer than this are truncated. Lower values reduce
                       # memory usage but may cut off context that the model
                       # needs to learn from.
+
+WIDTH   ?= 60         # Word-wrap width for chat output. Set to your terminal
+                      # width for best results, or 0 to disable wrapping.
 
 .PHONY: all run analyze clean FORCE
 
@@ -54,12 +65,12 @@ build/data/train.jsonl: build/.venv build/.parse-params $(INPUT) scripts/parse.p
 
 build/.train: build/data/train.jsonl build/.train-params scripts/train.sh
 	mkdir -p build/adapters
-	bash scripts/train.sh $(ITERS) $(BATCH) $(MAX_SEQ)
+	bash scripts/train.sh $(BASE_MODEL) $(ITERS) $(BATCH) $(MAX_SEQ)
 	touch build/.train
 
 build/.fuse: build/.train scripts/fuse.sh
 	mkdir -p build/model
-	bash scripts/fuse.sh
+	bash scripts/fuse.sh $(BASE_MODEL)
 	touch build/.fuse
 
 build/.gguf: build/.fuse build/.venv-llama scripts/gguf.sh
@@ -74,8 +85,8 @@ build/Modelfile: Modelfile.tmpl build/analysis.md
 
 build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
-	ollama pull $(MODEL)
-	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(MODEL) --verbose \
+	ollama pull $(ANALYSIS_MODEL)
+	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
 		--output build/analysis.md
 
 build/.ollama: build/.gguf build/Modelfile
@@ -83,7 +94,7 @@ build/.ollama: build/.gguf build/Modelfile
 	touch build/.ollama
 
 run: build/.ollama build/.venv
-	. .venv/bin/activate && python3 scripts/chat.py $(PROMPT)
+	. .venv/bin/activate && python3 scripts/chat.py --width $(WIDTH) $(PROMPT)
 
 analyze: build/analysis.md
 
@@ -102,5 +113,5 @@ build/.parse-params: FORCE
 
 build/.train-params: FORCE
 	@mkdir -p build
-	@printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ \
-		|| printf 'ITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
+	@printf 'BASE_MODEL=%s\nITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(BASE_MODEL)' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ \
+		|| printf 'BASE_MODEL=%s\nITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(BASE_MODEL)' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
