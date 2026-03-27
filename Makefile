@@ -65,7 +65,11 @@ build/data/train.jsonl: build/.venv build/.parse-params $(INPUT) scripts/parse.p
 
 build/.train: build/data/train.jsonl build/.train-params scripts/train.sh
 	mkdir -p build/adapters
-	bash scripts/train.sh $(BASE_MODEL) $(ITERS) $(BATCH) $(MAX_SEQ)
+	start=$$(date +%s); \
+	bash scripts/train.sh $(BASE_MODEL) $(ITERS) $(BATCH) $(MAX_SEQ) && \
+	end=$$(date +%s) && \
+	elapsed=$$((end - start)) && \
+	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 	touch build/.train
 
 build/.fuse: build/.train scripts/fuse.sh
@@ -86,8 +90,12 @@ build/Modelfile: Modelfile.tmpl build/analysis.md
 build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
 	ollama pull $(ANALYSIS_MODEL)
+	start=$$(date +%s); \
 	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
-		--output build/analysis.md
+		--output build/analysis.md && \
+	end=$$(date +%s) && \
+	elapsed=$$((end - start)) && \
+	printf '%s  analyze  %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 
 build/.ollama: build/.gguf build/Modelfile
 	ollama create bantz -f build/Modelfile
