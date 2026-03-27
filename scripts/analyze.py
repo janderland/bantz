@@ -4,9 +4,11 @@
 import argparse
 import atexit
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -84,64 +86,61 @@ Messages:
     return ollama(model, prompt)
 
 
-def chunk_messages(messages: list[Message], chunk_size: int) -> list[list[str]]:
-    formatted = [format_message(m) for m in messages]
-    formatted = [t for t in formatted if t]
-    return [formatted[i : i + chunk_size] for i in range(0, len(formatted), chunk_size)]
+STOPWORDS = {
+    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "was", "are", "were", "be", "been",
+    "have", "has", "had", "do", "did", "does", "will", "would", "could",
+    "should", "may", "might", "i", "you", "he", "she", "it", "we", "they",
+    "me", "him", "her", "us", "them", "my", "your", "his", "its", "our",
+    "their", "this", "that", "these", "those", "what", "which", "who",
+    "when", "where", "how", "why", "if", "so", "not", "no", "up", "out",
+    "just", "like", "get", "got", "go", "going", "know", "think", "yeah",
+    "ok", "okay", "lol", "haha", "oh", "ah", "hey", "hi", "i'm", "it's",
+    "don't", "can't", "i'll", "that's", "there", "about", "also", "one",
+    "all", "some", "more", "than", "then", "now", "can", "want", "need",
+}
 
 
-def analyze_jokes(
-    model: str,
-    messages: list[Message],
-    chunk_size: int,
-    verbose: bool,
-) -> str:
-    chunks = chunk_messages(messages, chunk_size)
-    candidates: list[str] = []
+def extract_ngrams(
+    messages: list[Message], min_count: int = 3, top_n: int = 50
+) -> list[tuple[str, int]]:
+    counts: Counter = Counter()
+    for msg in messages:
+        body = format_message(msg)
+        if not body or ": " not in body:
+            continue
+        body = body.split(": ", 1)[1]
+        words = re.findall(r"[a-z']+", body.lower())
+        for n in (2, 3):
+            for i in range(len(words) - n + 1):
+                gram = tuple(words[i : i + n])
+                if all(w in STOPWORDS for w in gram):
+                    continue
+                counts[" ".join(gram)] += 1
+    return [(p, c) for p, c in counts.most_common(top_n) if c >= min_count]
 
-    for i, chunk in enumerate(chunks, 1):
-        if verbose:
-            print(f"  Scanning chunk {i}/{len(chunks)} for inside jokes...", file=sys.stderr)
-        prompt = f"""Look for inside jokes in this group chat segment: recurring nicknames, \
-callback phrases, references that assume shared history, or running gags. Ignore generic slang \
-or common internet phrases.
 
-For each one, output a line in this format:
-- PHRASE: brief note on why it seems like an inside joke
-
-List at most 8 candidates. If nothing notable, output: NONE
-
-{chr(10).join(chunk)}"""
-        result = ollama(model, prompt)
-        if result.strip().upper() != "NONE":
-            candidates.append(result)
-
-    if not candidates:
-        return "No clear inside jokes identified."
-
-    # Deduplicate by lowercased first word of each bullet line to reduce synthesis prompt size.
-    seen: set[str] = set()
-    deduped: list[str] = []
-    for block in candidates:
-        for line in block.splitlines():
-            line = line.strip()
-            if not line or not line.startswith("-"):
-                continue
-            key = line.lstrip("- ").split()[0].lower().rstrip(",:") if line.lstrip("- ") else ""
-            if key and key not in seen:
-                seen.add(key)
-                deduped.append(line)
-
+def analyze_jokes(model: str, messages: list[Message], verbose: bool) -> str:
     if verbose:
-        print(f"  Synthesizing {len(deduped)} joke candidates...", file=sys.stderr)
+        print("  Extracting frequent phrases...", file=sys.stderr)
+    candidates = extract_ngrams(messages)
+    if not candidates:
+        return "No recurring phrases found."
+    if verbose:
+        print(f"  Found {len(candidates)} frequent phrases, asking LLM to interpret...",
+              file=sys.stderr)
+    lines = "\n".join(f'- "{phrase}" (appears {count}x)' for phrase, count in candidates)
+    prompt = f"""The following phrases appear repeatedly in a group chat. Identify which ones are \
+likely inside jokes, recurring references, or group-specific catchphrases — as opposed to just \
+common topic words or generic expressions.
 
-    synthesis_prompt = f"""Consolidate these inside joke candidates found in a group chat. \
-Merge duplicates, discard one-offs that are unlikely to be real group in-jokes. For each \
-genuine inside joke write one bullet point: the phrase or reference, followed by a plain-English \
-explanation of what it is and how the group uses it. Aim for 5–10 total.
+For each genuine inside joke or group-specific reference, write one bullet point explaining \
+what it likely is and how the group uses it. Aim for 5–10 total. Skip phrases that are just \
+common topics or generic conversation filler.
 
-{chr(10).join(deduped)}"""
-    return ollama(model, synthesis_prompt)
+Frequent phrases:
+{lines}"""
+    return ollama(model, prompt)
 
 
 def format_output(personalities: dict[str, str], jokes: str) -> str:
@@ -184,8 +183,6 @@ def main() -> None:
                         help="Usermap file (default: usermap)")
     parser.add_argument("-s", "--sample", type=int, default=150, metavar="N",
                         help="Max messages sampled per user for personality (default: 150)")
-    parser.add_argument("-c", "--chunk", type=int, default=300, metavar="N",
-                        help="Messages per chunk for jokes analysis (default: 300)")
     parser.add_argument("--jokes-only", action="store_true", help="Skip personality analysis")
     parser.add_argument("--personality-only", action="store_true", help="Skip inside jokes analysis")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print progress to stderr")
@@ -220,7 +217,7 @@ def main() -> None:
         if args.verbose:
             print("\nAnalyzing inside jokes...", file=sys.stderr)
         try:
-            jokes = analyze_jokes(args.model, messages, args.chunk, args.verbose)
+            jokes = analyze_jokes(args.model, messages, args.verbose)
         except urllib.error.URLError as e:
             if "Connection refused" in str(e):
                 print("Error: cannot connect to Ollama at localhost:11434. Is it running?",
