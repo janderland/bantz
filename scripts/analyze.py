@@ -2,6 +2,7 @@
 """Analyze a chat log to extract personality notes and inside jokes."""
 
 import argparse
+import atexit
 import json
 import sys
 import urllib.error
@@ -10,6 +11,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from parse import Message, format_message, parse_messages
+
+
+def unload_model(model: str) -> None:
+    try:
+        data = json.dumps({"model": model, "keep_alive": 0}).encode()
+        req = urllib.request.Request(
+            "http://localhost:11434/api/generate",
+            headers={"Content-Type": "application/json"},
+            data=data,
+        )
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
 
 
 def ollama(model: str, prompt: str) -> str:
@@ -176,6 +190,7 @@ def main() -> None:
     parser.add_argument("--personality-only", action="store_true", help="Skip inside jokes analysis")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print progress to stderr")
     args = parser.parse_args()
+    atexit.register(unload_model, args.model)
 
     usermap = load_usermap(args.map_file)
 
