@@ -95,35 +95,49 @@ STOPWORDS = {
     "their", "this", "that", "these", "those", "what", "which", "who",
     "when", "where", "how", "why", "if", "so", "not", "no", "up", "out",
     "just", "like", "get", "got", "go", "going", "know", "think", "yeah",
-    "ok", "okay", "lol", "haha", "oh", "ah", "hey", "hi", "i'm", "it's",
-    "don't", "can't", "i'll", "that's", "there", "about", "also", "one",
-    "all", "some", "more", "than", "then", "now", "can", "want", "need",
+    "ok", "okay", "lol", "haha", "oh", "ah", "hey", "hi", "there", "about",
+    "also", "one", "all", "some", "more", "than", "then", "now", "can",
+    "want", "need", "really", "actually", "literally", "basically", "still",
+    "even", "back", "here", "way", "time", "thing", "things", "people",
+    "good", "make", "see", "look", "come", "too", "very", "much", "well",
+    # Contractions with apostrophe stripped (normalized before tokenizing).
+    "im", "dont", "cant", "ill", "thats", "ive", "youre", "weve",
+    "theyre", "isnt", "wasnt", "wouldnt", "couldnt", "shouldnt", "didnt",
+    "doesnt", "hasnt", "havent", "id", "hed", "shed", "wed", "theyd",
+    "wont", "lets", "hes", "shes", "whats", "theres", "hows", "whos",
 }
 
 
 def extract_ngrams(
-    messages: list[Message], min_count: int = 3, top_n: int = 50
+    messages: list[Message], users: list[str], min_count: int = 3, top_n: int = 50
 ) -> list[tuple[str, int]]:
+    # Build a set of individual words from all usernames to filter out name n-grams.
+    name_words = {w for user in users for w in re.findall(r"[a-z]+", user.lower())}
     counts: Counter = Counter()
     for msg in messages:
         body = format_message(msg)
         if not body or ": " not in body:
             continue
         body = body.split(": ", 1)[1]
-        words = re.findall(r"[a-z']+", body.lower())
-        for n in (2, 3):
+        # Strip apostrophes so contractions tokenize as single words (e.g. "dont", "cant").
+        body = body.replace("\u2019", "").replace("\u2018", "").replace("'", "")
+        words = re.findall(r"[a-z]+", body.lower())
+        for n in (2, 3, 4):
             for i in range(len(words) - n + 1):
                 gram = tuple(words[i : i + n])
-                if all(w in STOPWORDS for w in gram):
+                if any(w in name_words for w in gram):
+                    continue
+                content_words = sum(1 for w in gram if w not in STOPWORDS)
+                if content_words < 2:
                     continue
                 counts[" ".join(gram)] += 1
     return [(p, c) for p, c in counts.most_common(top_n) if c >= min_count]
 
 
-def analyze_jokes(model: str, messages: list[Message], verbose: bool) -> str:
+def analyze_jokes(model: str, messages: list[Message], users: list[str], verbose: bool) -> str:
     if verbose:
         print("  Extracting frequent phrases...", file=sys.stderr)
-    candidates = extract_ngrams(messages)
+    candidates = extract_ngrams(messages, users)
     if not candidates:
         return "No recurring phrases found."
     if verbose:
@@ -217,7 +231,7 @@ def main() -> None:
         if args.verbose:
             print("\nAnalyzing inside jokes...", file=sys.stderr)
         try:
-            jokes = analyze_jokes(args.model, messages, args.verbose)
+            jokes = analyze_jokes(args.model, messages, seen_users, args.verbose)
         except urllib.error.URLError as e:
             if "Connection refused" in str(e):
                 print("Error: cannot connect to Ollama at localhost:11434. Is it running?",
@@ -226,7 +240,6 @@ def main() -> None:
             raise
 
     output = format_output(personalities, jokes)
-    print(output, end="")
 
     if args.output:
         args.output.write_text(output, encoding="utf-8")
