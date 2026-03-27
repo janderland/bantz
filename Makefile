@@ -1,4 +1,6 @@
-INPUT   ?= input.md   # Chat log to parse into training data.
+INPUT   ?= input.md      # Chat log to parse into training data.
+
+MODEL   ?= llama3.1:8b  # Ollama model used for chat analysis.
 
 WINDOW  ?= 6          # Number of preceding messages included as context for
                       # each training example. Larger values give the model
@@ -21,7 +23,7 @@ MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
                       # memory usage but may cut off context that the model
                       # needs to learn from.
 
-.PHONY: all run clean FORCE
+.PHONY: all run analyze clean FORCE
 
 all: build/.ollama
 parse: build/data/train.jsonl
@@ -65,12 +67,25 @@ build/.gguf: build/.fuse build/.venv-llama scripts/gguf.sh
 	bash scripts/gguf.sh
 	touch build/.gguf
 
-build/.ollama: build/.gguf Modelfile
-	ollama create bantz -f Modelfile
+build/Modelfile: Modelfile.tmpl build/analysis.md
+	@mkdir -p build
+	awk 'FNR==NR{content=content $$0 "\n"; next} /\{\{ANALYSIS\}\}/{printf "%s", content; next} 1' \
+		build/analysis.md Modelfile.tmpl > build/Modelfile
+
+build/analysis.md: build/.venv $(INPUT)
+	@mkdir -p build
+	ollama pull $(MODEL)
+	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(MODEL) --verbose \
+		--output build/analysis.md
+
+build/.ollama: build/.gguf build/Modelfile
+	ollama create bantz -f build/Modelfile
 	touch build/.ollama
 
 run: build/.ollama build/.venv
 	. .venv/bin/activate && python3 scripts/chat.py $(PROMPT)
+
+analyze: build/analysis.md
 
 clean:
 	rm -rf build .venv llama.cpp/.venv
