@@ -90,7 +90,11 @@ points, nothing else.
 
 Messages:
 {chr(10).join(sampled)}"""
-    return ollama(model, prompt)
+    result = ollama(model, prompt)
+    # Strip any leading non-bullet lines (e.g. "Here are 4 bullet points...").
+    lines = result.splitlines()
+    first_bullet = next((i for i, l in enumerate(lines) if l.lstrip().startswith(("-", "•", "*"))), 0)
+    return "\n".join(lines[first_bullet:])
 
 
 STOPWORDS = {
@@ -200,14 +204,21 @@ def extract_frequent_topics(
     return results[:top_n]
 
 
-def analyze_references(model: str, messages: list[Message], users: list[str], verbose: bool) -> str:
+def analyze_references(
+    model: str,
+    messages: list[Message],
+    users: list[str],
+    max_phrases: int,
+    max_topics: int,
+    verbose: bool,
+) -> str:
     if verbose:
         print("  Extracting frequent phrases...", file=sys.stderr)
-    phrases = extract_ngrams(messages, users)
+    phrases = extract_ngrams(messages, users, top_n=max_phrases)
 
     if verbose:
         print("  Extracting frequent topics...", file=sys.stderr)
-    topics = extract_frequent_topics(messages, users)
+    topics = extract_frequent_topics(messages, users, top_n=max_topics)
 
     if not phrases and not topics:
         return "No recurring phrases or notable topics found."
@@ -243,9 +254,10 @@ this much more than average English text; "not in general English" means the wor
 unknown outside this group):
 {chr(10).join(topic_lines) if topic_lines else "None found."}
 
-For each genuine group reference, write one bullet point explaining what it likely is \
-and how the group uses it. Include both in-jokes and recurring topics. If something is \
-only used by one person, note that. Aim for 5–10 total."""
+Write one bullet point for EVERY phrase and word listed above — do not skip any. For \
+items that appear to be inside jokes, catchphrases, or notable group topics, provide a \
+brief explanation. For items you have no specific insight on, just list the phrase/word \
+without explanation. If something is only used by one person, note that."""
     return ollama(model, prompt)
 
 
@@ -289,6 +301,10 @@ def main() -> None:
                         help="Usermap file (default: usermap)")
     parser.add_argument("-s", "--sample", type=int, default=150, metavar="N",
                         help="Max messages sampled per user for personality (default: 150)")
+    parser.add_argument("--max-phrases", type=int, default=100, metavar="N",
+                        help="Max frequent phrases to consider for group references (default: 100)")
+    parser.add_argument("--max-topics", type=int, default=50, metavar="N",
+                        help="Max high-anomaly words to consider for group references (default: 50)")
     parser.add_argument("--references-only", action="store_true", help="Skip personality analysis")
     parser.add_argument("--personality-only", action="store_true", help="Skip group references analysis")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print progress to stderr")
@@ -323,7 +339,9 @@ def main() -> None:
         if args.verbose:
             print("\nAnalyzing group references...", file=sys.stderr)
         try:
-            references = analyze_references(args.model, messages, seen_users, args.verbose)
+            references = analyze_references(
+                args.model, messages, seen_users, args.max_phrases, args.max_topics, args.verbose
+            )
         except urllib.error.URLError as e:
             if "Connection refused" in str(e):
                 print("Error: cannot connect to Ollama at localhost:11434. Is it running?",

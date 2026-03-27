@@ -34,6 +34,12 @@ MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
 WIDTH   ?= 60         # Word-wrap width for chat output. Set to your terminal
                       # width for best results, or 0 to disable wrapping.
 
+MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
+                      # when analyzing group references.
+
+MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
+                      # analyzing group references.
+
 .PHONY: all run analyze clean FORCE
 
 all: build/.ollama
@@ -92,7 +98,7 @@ build/analysis.md: build/.venv $(INPUT)
 	ollama pull $(ANALYSIS_MODEL)
 	start=$$(date +%s); \
 	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
-		--output build/analysis.md && \
+		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md && \
 	end=$$(date +%s) && \
 	elapsed=$$((end - start)) && \
 	printf '%s  analyze  %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
