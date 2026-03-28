@@ -16,8 +16,9 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from corpus import Message, format_message, parse_messages
+from corpus import format_message
+from message import Message
+from parse_signal import parse_messages
 
 from wordfreq import word_frequency, zipf_frequency
 
