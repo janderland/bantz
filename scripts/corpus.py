@@ -3,27 +3,42 @@
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
-from message import Message
-from parse_signal import parse_messages, resolve_replies
+from common import Message, load_usermap
+from parse_signal import parse_messages
 
 
-def format_message(msg: Message) -> str:
-    body = "\n".join(msg.lines).strip()
-    if not body:
-        return ""
-    result = f"{msg.user}: {body}"
-    if msg.reaction:
-        result += f"\n{msg.reaction}"
-    return result
+def make_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Parse chat log into JSONL training data.")
+    parser.add_argument("input", type=Path, help="Input chat log file")
+    parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
+    parser.add_argument("-f", "--map-file", metavar="FILE", type=Path, default=Path("usermap"),
+                        help="File of OLD=NEW mappings, one per line (default: usermap)")
+    parser.add_argument("-w", "--window", type=int, default=6, metavar="N",
+                        help="Number of preceding messages used as context (default: 6)")
+    return parser
 
 
-def make_training_examples(messages: list[Message], window: int) -> list[dict]:
-    formatted = [format_message(msg) for msg in messages]
+def resolve_replies(messages: list[Message]) -> int:
+    resolved = 0
+    for i, msg in enumerate(messages):
+        if not msg.quote_text:
+            continue
+        for j in range(i - 1, -1, -1):
+            candidate = messages[j]
+            body = "\n".join(candidate.lines)
+            if msg.quote_text in body:
+                msg.reply_to = j
+                resolved += 1
+                break
+    return resolved
 
-    examples = []
+
+def make_corpus(messages: list[Message], window: int) -> list[dict]:
+    formatted = [msg.format() for msg in messages]
+
+    corpus = []
     for i, msg in enumerate(messages):
         completion = formatted[i]
         if not completion:
@@ -47,50 +62,32 @@ def make_training_examples(messages: list[Message], window: int) -> list[dict]:
             context = "\n".join(ctx)
 
         prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{context}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-        examples.append({"prompt": prompt, "completion": f"{completion}<|eot_id|>"})
+        corpus.append({"prompt": prompt, "completion": f"{completion}<|eot_id|>"})
 
-    return examples
+    return corpus
+
+
+def write_corpus(corpus: list[dict], path: Path) -> None:
+    path.write_text("\n".join(json.dumps(e) for e in corpus), encoding="utf-8")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Parse chat log into JSONL training data.")
-    parser.add_argument("input", type=Path, help="Input chat log file")
-    parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
-    parser.add_argument("-f", "--map-file", metavar="FILE", type=Path, default=Path("usermap"),
-                        help="File of OLD=NEW mappings, one per line (default: usermap)")
-    parser.add_argument("-w", "--window", type=int, default=6, metavar="N",
-                        help="Number of preceding messages used as context (default: 6)")
-    args = parser.parse_args()
+    args = make_arg_parser().parse_args()
 
-    usermap = {}
-    map_file: Path = args.map_file
-    if map_file.exists():
-        for line in map_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if "=" not in line:
-                print(f"Error: invalid mapping {line!r} in {map_file}, expected OLD=NEW")
-                sys.exit(1)
-            old, new = line.split("=", 1)
-            usermap[old.strip()] = new.strip()
+    usermap = load_usermap(args.map_file)
 
-    chat_path = args.input
-    out_path = args.output
-
-    print(f"Parsing {chat_path}...")
-    messages = parse_messages(chat_path, usermap)
+    print(f"Parsing {args.input}...")
+    messages = parse_messages(args.input, usermap)
     print(f"  Found {len(messages)} messages")
 
-    resolve_replies(messages)
-    replies = sum(1 for m in messages if m.reply_to >= 0)
+    replies = resolve_replies(messages)
     print(f"  Resolved {replies} replies")
 
-    examples = make_training_examples(messages, args.window)
-    print(f"  Generated {len(examples)} training examples")
+    corpus = make_corpus(messages, args.window)
+    print(f"  Generated {len(corpus)} examples")
 
-    out_path.write_text("\n".join(json.dumps(e) for e in examples), encoding="utf-8")
-    print(f"  Wrote {out_path}")
+    write_corpus(corpus, args.output)
+    print(f"  Wrote {args.output}")
 
 
 if __name__ == "__main__":

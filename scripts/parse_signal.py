@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from message import Message
+from common import Message
 
 HEADER = re.compile(r"^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] ([^:]+): ?(.*)")
 REACTION = re.compile(r"^\(-(.+?)-\)")
@@ -66,15 +66,3 @@ def parse_messages(path: Path, usermap: dict[str, str]) -> list[Message]:
             current.lines.append(cleaned)
 
     return messages
-
-
-def resolve_replies(messages: list[Message]) -> None:
-    for i, msg in enumerate(messages):
-        if not msg.quote_text:
-            continue
-        for j in range(i - 1, -1, -1):
-            candidate = messages[j]
-            body = "\n".join(candidate.lines)
-            if msg.quote_text in body:
-                msg.reply_to = j
-                break

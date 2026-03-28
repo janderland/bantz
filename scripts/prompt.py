@@ -16,11 +16,10 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 
-from corpus import format_message
-from message import Message
+from common import Message, load_usermap
 from parse_signal import parse_messages
 
-from wordfreq import word_frequency, zipf_frequency
+from wordfreq import word_frequency
 
 
 def unload_model(model: str) -> None:
@@ -54,7 +53,7 @@ def ollama(model: str, prompt: str) -> str:
 
 
 def sample_user_messages(messages: list[Message], user: str, n: int) -> list[str]:
-    user_msgs = [format_message(m) for m in messages if m.user == user]
+    user_msgs = [m.format() for m in messages if m.user == user]
     user_msgs = [t for t in user_msgs if t]
     if not user_msgs:
         return []
@@ -128,7 +127,7 @@ def extract_ngrams(
     counts: Counter = Counter()
     phrase_users: dict[str, set[str]] = {}
     for msg in messages:
-        body = format_message(msg)
+        body = msg.format()
         if not body or ": " not in body:
             continue
         body = body.split(": ", 1)[1]
@@ -173,7 +172,7 @@ def extract_frequent_topics(
     total_words = 0
 
     for msg in messages:
-        body = format_message(msg)
+        body = msg.format()
         if not body or ": " not in body:
             continue
         body = body.split(": ", 1)[1]
@@ -274,22 +273,6 @@ def format_output(personalities: dict[str, str], references: str) -> str:
         parts.append("## Group References")
         parts.append(references.strip())
     return "\n".join(parts) + "\n"
-
-
-def load_usermap(map_file: Path) -> dict[str, str]:
-    usermap: dict[str, str] = {}
-    if not map_file.exists():
-        return usermap
-    for line in map_file.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if "=" not in line:
-            print(f"Warning: invalid mapping {line!r} in {map_file}", file=sys.stderr)
-            continue
-        old, new = line.split("=", 1)
-        usermap[old.strip()] = new.strip()
-    return usermap
 
 
 def main() -> None:
