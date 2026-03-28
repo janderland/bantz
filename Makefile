@@ -35,18 +35,18 @@ WIDTH   ?= 60         # Word-wrap width for chat output. Set to your terminal
                       # width for best results, or 0 to disable wrapping.
 
 MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
-                      # when analyzing group references.
+                      # when generating the prompt.
 
 MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
-                      # analyzing group references.
+                      # generating the prompt.
 
-.PHONY: help all corpus train fuse gguf run analyze clean FORCE
+.PHONY: help all corpus train fuse gguf run prompt clean FORCE
 
 help:
 	@printf 'Targets:\n'
 	@printf '  all      Build everything and register the model with Ollama\n'
 	@printf '  corpus   Parse the chat log into training data (JSONL)\n'
-	@printf '  analyze  Analyze the chat log for personality notes and group references\n'
+	@printf '  prompt   Analyze the chat log for personality notes and group references\n'
 	@printf '  train    Fine-tune the base model on the training corpus\n'
 	@printf '  fuse     Merge the LoRA adapters into the base model weights\n'
 	@printf '  gguf     Convert the fused model to GGUF format\n'
@@ -108,11 +108,11 @@ build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
 	ollama pull $(ANALYSIS_MODEL)
 	start=$$(date +%s); \
-	. .venv/bin/activate && python3 scripts/analyze.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
+	. .venv/bin/activate && python3 scripts/prompt.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
 		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md && \
 	end=$$(date +%s) && \
 	elapsed=$$((end - start)) && \
-	printf '%s  analyze  %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
+	printf '%s  prompt   %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 
 build/.ollama: build/.gguf build/Modelfile
 	ollama create bantz -f build/Modelfile
@@ -121,7 +121,7 @@ build/.ollama: build/.gguf build/Modelfile
 run: build/.ollama build/.venv
 	. .venv/bin/activate && python3 scripts/chat.py --width $(WIDTH) $(PROMPT)
 
-analyze: build/analysis.md
+prompt: build/analysis.md
 
 clean:
 	rm -rf build .venv llama.cpp/.venv
