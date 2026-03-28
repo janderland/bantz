@@ -40,7 +40,18 @@ MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
 MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
                       # analyzing group references.
 
-.PHONY: all run analyze clean FORCE
+.PHONY: help all corpus train fuse gguf run analyze clean FORCE
+
+help:
+	@printf 'Targets:\n'
+	@printf '  all      Build everything and register the model with Ollama\n'
+	@printf '  corpus   Parse the chat log into training data (JSONL)\n'
+	@printf '  analyze  Analyze the chat log for personality notes and group references\n'
+	@printf '  train    Fine-tune the base model on the training corpus\n'
+	@printf '  fuse     Merge the LoRA adapters into the base model weights\n'
+	@printf '  gguf     Convert the fused model to GGUF format\n'
+	@printf '  run      Chat with the trained model\n'
+	@printf '  clean    Remove all build artifacts\n'
 
 all: build/.ollama
 corpus: build/data/train.jsonl
