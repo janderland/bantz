@@ -129,7 +129,7 @@ def make_training_examples(messages: list[Message], window: int) -> list[dict]:
     return examples
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Parse chat log into JSONL training data.")
     parser.add_argument("input", type=Path, help="Input chat log file")
     parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
