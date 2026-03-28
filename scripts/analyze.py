@@ -17,7 +17,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from parse import Message, format_message, parse_messages
+from corpus import Message, format_message, parse_messages
 
 from wordfreq import word_frequency, zipf_frequency
 

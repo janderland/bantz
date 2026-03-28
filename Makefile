@@ -43,7 +43,7 @@ MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
 .PHONY: all run analyze clean FORCE
 
 all: build/.ollama
-parse: build/data/train.jsonl
+corpus: build/data/train.jsonl
 train: build/.train
 fuse: build/.fuse
 gguf: build/.gguf
@@ -65,9 +65,9 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
-build/data/train.jsonl: build/.venv build/.parse-params $(INPUT) scripts/parse.py
+build/data/train.jsonl: build/.venv build/.corpus-params $(INPUT) scripts/corpus.py
 	mkdir -p build/data
-	. .venv/bin/activate && python3 scripts/parse.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
+	. .venv/bin/activate && python3 scripts/corpus.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
 
 build/.train: build/data/train.jsonl build/.train-params scripts/train.sh
 	mkdir -p build/adapters
@@ -120,7 +120,7 @@ clean:
 # the file is only written (and thus made newer than its dependents) when the
 # values have actually changed. This triggers a rebuild of the affected step.
 
-build/.parse-params: FORCE
+build/.corpus-params: FORCE
 	@mkdir -p build
 	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ \
 		|| printf 'WINDOW=%s\n' '$(WINDOW)' > $@
