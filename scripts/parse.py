@@ -38,6 +38,9 @@ def parse_messages(path: Path, usermap: dict[str, str]) -> list[Message]:
         if m:
             user = m.group(2)
             user = usermap.get(user, user)
+            if not user:
+                current = None
+                continue
             current = Message(timestamp=m.group(1), user=user)
             if m.group(3):
                 current.lines.append(m.group(3))
