@@ -28,11 +28,7 @@ def _clean(line: str) -> str:
 
 
 def parse_messages(path: Path) -> list[Message]:
-    """Parse a signal-export markdown file into a list of Messages.
-
-    Returns all messages with their original sender names intact.
-    Apply :func:`corpus.apply_usermap` afterwards to rename or filter users.
-    """
+    """Parse a signal-export markdown file into a list of Messages."""
     messages = []
     current = None
 
