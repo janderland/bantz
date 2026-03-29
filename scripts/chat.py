@@ -207,15 +207,14 @@ def make_arg_parser():
 def main():
     args = make_arg_parser().parse_args()
 
-    prompt = args.query
     raw_file = open(args.raw, "w") if args.raw else None
 
-    pipeline = ollama_tokens(prompt)
+    pipeline = ollama_tokens(args.query)
     if raw_file:
         pipeline = tee_raw(pipeline, raw_file)
     pipeline = tokenize_lines(pipeline)
     pipeline = itertools.chain(
-        (line.strip() for line in prompt.split("\n")),
+        (line.strip() for line in args.query.split("\n")),
         pipeline,
     )
     pipeline = format_chat(pipeline)
