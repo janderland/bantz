@@ -136,7 +136,7 @@ build/.ollama: build/.gguf build/Modelfile
 	touch build/.ollama
 
 run: build/.ollama build/.venv
-	. .venv/bin/activate && python3 scripts/chat.py --width $(WIDTH) $(PROMPT)
+	. .venv/bin/activate && python3 scripts/chat.py --width $(WIDTH) "$(PROMPT)"
 
 prompt: build/analysis.md
 

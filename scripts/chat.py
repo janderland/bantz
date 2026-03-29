@@ -200,14 +200,14 @@ def make_arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-w", "--width", type=int, default=None)
     parser.add_argument("-r", "--raw", metavar="FILE", default=None)
-    parser.add_argument("query", nargs="+")
+    parser.add_argument("query")
     return parser
 
 
 def main():
     args = make_arg_parser().parse_args()
 
-    prompt = " ".join(args.query)
+    prompt = args.query
     raw_file = open(args.raw, "w") if args.raw else None
 
     pipeline = ollama_tokens(prompt)
