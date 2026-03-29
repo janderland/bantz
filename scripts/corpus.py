@@ -63,7 +63,7 @@ def make_corpus(messages: list[Message], window: int) -> list[dict]:
                 continue
             context = "\n".join(ctx)
 
-        prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{context}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+        prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{context}\n{msg.user}:<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
         corpus.append({"prompt": prompt, "completion": f"{completion}<|eot_id|>"})
 
     return corpus
