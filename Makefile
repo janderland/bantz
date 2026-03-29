@@ -40,11 +40,12 @@ MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
 MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
-.PHONY: help all corpus train fuse gguf run prompt clean FORCE
+.PHONY: help all deps corpus train fuse gguf run prompt clean FORCE
 
 help:
 	@printf 'Targets:\n'
 	@printf '  all      Build everything and register the model with Ollama\n'
+	@printf '  deps     Check system dependencies and install missing ones via brew\n'
 	@printf '  corpus   Parse the chat log into training data (JSONL)\n'
 	@printf '  prompt   Analyze the chat log for personality notes and group references\n'
 	@printf '  train    Fine-tune the base model on the training corpus\n'
@@ -52,6 +53,22 @@ help:
 	@printf '  gguf     Convert the fused model to GGUF format\n'
 	@printf '  run      Chat with the trained model\n'
 	@printf '  clean    Remove all build artifacts\n'
+
+deps:
+	@missing=""; \
+	command -v ollama     >/dev/null 2>&1 || missing="$$missing ollama"; \
+	command -v python3.10 >/dev/null 2>&1 || missing="$$missing python@3.10"; \
+	if [ -z "$$missing" ]; then \
+		printf 'All dependencies are installed.\n'; \
+	else \
+		printf 'Missing:%s\n' "$$missing"; \
+		printf 'Install with brew? [y/N] '; \
+		read ans </dev/tty; \
+		case "$$ans" in \
+			[yY]*) brew install $$missing ;; \
+			*) printf 'Skipped.\n' ;; \
+		esac; \
+	fi
 
 all: build/.ollama
 corpus: build/data/train.jsonl
