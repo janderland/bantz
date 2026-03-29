@@ -27,13 +27,11 @@ def _clean(line: str) -> str:
     return line.strip()
 
 
-def parse_messages(path: Path, usermap: dict[str, str]) -> list[Message]:
-    """Parse a Signal-export Markdown file into a list of Messages.
+def parse_messages(path: Path) -> list[Message]:
+    """Parse a signal-export markdown file into a list of Messages.
 
-    Each message header is matched against *usermap*: if the sender's name
-    has an entry, the mapped name is used instead. A mapped name of ``""``
-    (empty string) drops the message entirely — this is how unwanted
-    participants are filtered out.
+    Returns all messages with their original sender names intact.
+    Apply :func:`corpus.apply_usermap` afterwards to rename or filter users.
     """
     messages = []
     current = None
@@ -43,12 +41,7 @@ def parse_messages(path: Path, usermap: dict[str, str]) -> list[Message]:
 
         m = HEADER.match(line)
         if m:
-            user = m.group(2)
-            user = usermap.get(user, user)
-            if not user:
-                current = None
-                continue
-            current = Message(timestamp=m.group(1), user=user)
+            current = Message(timestamp=m.group(1), user=m.group(2))
             if m.group(3):
                 cleaned = _clean(m.group(3))
                 if cleaned:

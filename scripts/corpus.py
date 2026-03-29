@@ -21,6 +21,24 @@ def make_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def apply_usermap(messages: list[Message], usermap: dict[str, str]) -> list[Message]:
+    """Rename users and filter messages according to *usermap*.
+
+    For each message, if the sender's name has an entry in *usermap* the name
+    is replaced with the mapped value.  An empty mapped value (``""``) means
+    the message is dropped entirely.  Messages whose sender has no entry are
+    kept with their original name.
+    """
+    result = []
+    for msg in messages:
+        name = usermap.get(msg.user, msg.user)
+        if not name:
+            continue
+        msg.user = name
+        result.append(msg)
+    return result
+
+
 def resolve_replies(messages: list[Message]) -> int:
     """Set ``reply_to`` on each message that quotes another message.
 
@@ -99,7 +117,8 @@ def main() -> None:
     usermap = load_usermap(args.map_file)
 
     print(f"Parsing {args.input}...")
-    messages = parse_messages(args.input, usermap)
+    messages = parse_messages(args.input)
+    messages = apply_usermap(messages, usermap)
     print(f"  Found {len(messages)} messages")
 
     replies = resolve_replies(messages)
