@@ -204,27 +204,24 @@ def main():
     args = parser.parse_args()
 
     prompt = " ".join(args.query)
+    raw_file = open(args.raw, "w") if args.raw else None
 
-    def run(raw_file=None):
-        tokens = ollama_tokens(prompt)
-        if raw_file is not None:
-            tokens = tee_raw(tokens, raw_file)
+    pipeline = ollama_tokens(prompt)
+    if raw_file:
+        pipeline = tee_raw(pipeline, raw_file)
+    pipeline = tokenize_lines(pipeline)
+    pipeline = itertools.chain(
+        (line.strip() for line in prompt.split("\n")),
+        pipeline,
+    )
+    pipeline = format_chat(pipeline)
+    if args.width:
+        pipeline = wrap_output(pipeline, args.width)
 
-        all_lines = itertools.chain(
-            (line.strip() for line in prompt.split("\n")),
-            tokenize_lines(tokens),
-        )
+    flush_output(pipeline)
 
-        events = format_chat(all_lines)
-        if args.width is not None:
-            events = wrap_output(events, args.width)
-        flush_output(events)
-
-    if args.raw:
-        with open(args.raw, "w") as raw_file:
-            run(raw_file)
-    else:
-        run()
+    if raw_file:
+        raw_file.close()
 
 
 if __name__ == "__main__":
