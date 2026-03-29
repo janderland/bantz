@@ -45,10 +45,12 @@ def make_corpus(messages: list[Message], window: int) -> list[dict]:
             continue
 
         if msg.reply_to >= 0:
-            # Reply example: context window ending with the original message.
+            # Reply example: a window of context around the original message
+            # plus a window of context leading up to the reply.
             orig = msg.reply_to
-            start = max(0, orig - window + 1)
-            ctx = [t for t in formatted[start : orig + 1] if t]
+            orig_ctx = [t for t in formatted[max(0, orig - window + 1) : orig + 1] if t]
+            reply_ctx = [t for t in formatted[max(0, i - window) : i] if t]
+            ctx = orig_ctx + reply_ctx
             if not ctx:
                 continue
             context = "\n".join(ctx)
