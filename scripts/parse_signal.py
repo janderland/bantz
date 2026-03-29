@@ -1,4 +1,10 @@
-"""Parse chat log dumps from github.com/carderne/signal-export."""
+"""Parse chat log dumps from github.com/carderne/signal-export.
+
+Each exported log is a Markdown file where each message starts with a header
+line of the form ``[YYYY-MM-DD HH:MM:SS] Name: text``, optionally followed by
+continuation lines, a quoted reply line (``> ...``), and a reaction line
+(``(-emoji-)``).
+"""
 
 import re
 from pathlib import Path
@@ -14,6 +20,7 @@ MEDIA = "\ufffc"  # object replacement character
 
 
 def _clean(line: str) -> str:
+    """Strip URLs, Markdown image syntax, and the Unicode object-replacement character from a line."""
     line = URL.sub("", line)
     line = IMG.sub("", line)
     line = line.replace(MEDIA, "")
@@ -21,6 +28,13 @@ def _clean(line: str) -> str:
 
 
 def parse_messages(path: Path, usermap: dict[str, str]) -> list[Message]:
+    """Parse a Signal-export Markdown file into a list of Messages.
+
+    Each message header is matched against *usermap*: if the sender's name
+    has an entry, the mapped name is used instead. A mapped name of ``""``
+    (empty string) drops the message entirely — this is how unwanted
+    participants are filtered out.
+    """
     messages = []
     current = None
 

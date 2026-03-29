@@ -10,6 +10,7 @@ from parse_signal import parse_messages
 
 
 def make_arg_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser."""
     parser = argparse.ArgumentParser(description="Parse chat log into JSONL training data.")
     parser.add_argument("input", type=Path, help="Input chat log file")
     parser.add_argument("output", type=Path, nargs="?", default=Path("train.jsonl"), help="Output JSONL file")
@@ -21,6 +22,12 @@ def make_arg_parser() -> argparse.ArgumentParser:
 
 
 def resolve_replies(messages: list[Message]) -> int:
+    """Set ``reply_to`` on each message that quotes another message.
+
+    Searches backwards from each quoting message for the most recent message
+    whose body contains the quoted text.  Sets ``msg.reply_to`` to that
+    message's index and returns the total number of resolved replies.
+    """
     resolved = 0
     for i, msg in enumerate(messages):
         if not msg.quote_text:
@@ -36,6 +43,17 @@ def resolve_replies(messages: list[Message]) -> int:
 
 
 def make_corpus(messages: list[Message], window: int) -> list[dict]:
+    """Build a list of prompt/completion training examples from *messages*.
+
+    Each example is a dict with ``"prompt"`` and ``"completion"`` keys
+    formatted for MLX-LM LoRA fine-tuning using Llama 3 chat tokens.
+
+    The prompt ends with ``Speaker:`` so the model learns to generate in a
+    specific person's voice.  For reply messages, the context window includes
+    messages around the original message *and* messages leading up to the
+    reply; standalone messages use a sliding window of the preceding messages.
+    Messages with no non-empty body are skipped.
+    """
     formatted = [msg.format() for msg in messages]
 
     corpus = []
@@ -70,10 +88,12 @@ def make_corpus(messages: list[Message], window: int) -> list[dict]:
 
 
 def write_corpus(corpus: list[dict], path: Path) -> None:
+    """Write *corpus* to *path* as a JSONL file (one JSON object per line)."""
     path.write_text("\n".join(json.dumps(e) for e in corpus), encoding="utf-8")
 
 
 def main() -> None:
+    """Parse arguments, build the training corpus, and write it to disk."""
     args = make_arg_parser().parse_args()
 
     usermap = load_usermap(args.map_file)
