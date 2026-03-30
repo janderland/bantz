@@ -17,6 +17,7 @@ from collections import Counter
 from pathlib import Path
 
 from common import Message, load_usermap
+from corpus import apply_usermap
 from parse_signal import parse_messages
 
 from wordfreq import word_frequency
@@ -299,7 +300,8 @@ def main() -> None:
 
     if args.verbose:
         print(f"Parsing {args.input}...", file=sys.stderr)
-    messages = parse_messages(args.input, usermap)
+    messages = parse_messages(args.input)
+    messages = apply_usermap(messages, usermap)
     if args.verbose:
         print(f"  {len(messages)} messages", file=sys.stderr)
 
