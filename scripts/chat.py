@@ -10,10 +10,8 @@ REACTION = re.compile(r'(\( \w+: \S+(?:, \w+: \S+)* \))')
 SPECIAL_TOKEN = re.compile(r'<\|[^|]*\|>')
 
 
-# --- Pipeline stages ---
-
-def ollama_tokens(prompt):
-    """Stage 1: Stream raw tokens from the Ollama API."""
+def from_ollama(prompt):
+    """Stream raw tokens from the Ollama API."""
     data = json.dumps({"model": "bantz", "prompt": prompt, "stream": True}).encode()
     req = urllib.request.Request(
         "http://localhost:11434/api/generate",
@@ -28,15 +26,15 @@ def ollama_tokens(prompt):
                 break
 
 
-def tee_raw(tokens, file):
-    """Side-stage: pass tokens through while writing each to a file."""
+def tee_raw_output(tokens, file):
+    """Pass tokens through while writing each to a file."""
     for token in tokens:
         file.write(token)
         file.flush()
         yield token
 
 
-def prefix_with_prompt(prompt, lines):
+def prefix_with_query(prompt, lines):
     """Prepend the prompt's own lines before the token stream lines."""
     return itertools.chain(
         (line.strip() for line in prompt.split("\n")),
@@ -45,7 +43,7 @@ def prefix_with_prompt(prompt, lines):
 
 
 def tokenize_lines(tokens):
-    """Stage 2+3: Accumulate tokens, strip special tokens, yield complete lines."""
+    """Accumulate tokens, strip special tokens, yield complete lines."""
     buf = ""
     for token in tokens:
         buf += token
@@ -58,7 +56,7 @@ def tokenize_lines(tokens):
 
 
 def format_chat(lines):
-    """Stage 4: Parse chat lines and yield output events.
+    """Parse chat lines and yield output events.
 
     Yields str for text lines and None for blank lines.
     """
@@ -185,7 +183,7 @@ def format_chat(lines):
 
 
 def wrap_output(events, width):
-    """Stage 5: Word-wrap text lines to the given column width."""
+    """Word-wrap text lines to the given column width."""
     for event in events:
         if event is None:
             yield None
@@ -196,13 +194,11 @@ def wrap_output(events, width):
 
 
 def flush_output(events):
-    """Stage 6: Print events to stdout."""
+    """Print events to stdout."""
     for event in events:
         print("" if event is None else event)
         sys.stdout.flush()
 
-
-# --- Entry point ---
 
 def make_arg_parser():
     parser = argparse.ArgumentParser()
@@ -217,11 +213,11 @@ def main():
 
     raw_file = open(args.raw, "w") if args.raw else None
 
-    pipeline = ollama_tokens(args.query)
+    pipeline = from_ollama(args.query)
     if raw_file:
-        pipeline = tee_raw(pipeline, raw_file)
+        pipeline = tee_raw_output(pipeline, raw_file)
     pipeline = tokenize_lines(pipeline)
-    pipeline = prefix_with_prompt(args.query, pipeline)
+    pipeline = prefix_with_query(args.query, pipeline)
     pipeline = format_chat(pipeline)
     if args.width:
         pipeline = wrap_output(pipeline, args.width)
