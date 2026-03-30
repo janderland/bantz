@@ -36,6 +36,14 @@ def tee_raw(tokens, file):
         yield token
 
 
+def prefix_with_prompt(prompt, lines):
+    """Prepend the prompt's own lines before the token stream lines."""
+    return itertools.chain(
+        (line.strip() for line in prompt.split("\n")),
+        lines,
+    )
+
+
 def tokenize_lines(tokens):
     """Stage 2+3: Accumulate tokens, strip special tokens, yield complete lines."""
     buf = ""
@@ -213,10 +221,7 @@ def main():
     if raw_file:
         pipeline = tee_raw(pipeline, raw_file)
     pipeline = tokenize_lines(pipeline)
-    pipeline = itertools.chain(
-        (line.strip() for line in args.query.split("\n")),
-        pipeline,
-    )
+    pipeline = prefix_with_prompt(args.query, pipeline)
     pipeline = format_chat(pipeline)
     if args.width:
         pipeline = wrap_output(pipeline, args.width)
