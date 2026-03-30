@@ -10,13 +10,20 @@ REACTION = re.compile(r'(\( \w+: \S+(?:, \w+: \S+)* \))')
 SPECIAL_TOKEN = re.compile(r'<\|[^|]*\|>')
 
 
+def make_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-w", "--width", type=int, default=None)
+    parser.add_argument("-r", "--raw", metavar="FILE", default=None)
+    parser.add_argument("query")
+    return parser
+
+
 def from_ollama(prompt):
     """Stream raw tokens from the Ollama API."""
-    data = json.dumps({"model": "bantz", "prompt": prompt, "stream": True}).encode()
     req = urllib.request.Request(
         "http://localhost:11434/api/generate",
         headers={"Content-Type": "application/json"},
-        data=data,
+        data=json.dumps({"model": "bantz", "prompt": prompt, "stream": True}).encode(),
     )
     with urllib.request.urlopen(req) as resp:
         for raw_line in resp:
@@ -27,19 +34,11 @@ def from_ollama(prompt):
 
 
 def tee_raw_output(tokens, file):
-    """Pass tokens through while writing each to a file."""
+    """Pass raw tokens through while writing them to a file."""
     for token in tokens:
         file.write(token)
         file.flush()
         yield token
-
-
-def prefix_with_query(prompt, lines):
-    """Prepend the prompt's own lines before the token stream lines."""
-    return itertools.chain(
-        (line.strip() for line in prompt.split("\n")),
-        lines,
-    )
 
 
 def tokenize_lines(tokens):
@@ -53,6 +52,14 @@ def tokenize_lines(tokens):
             yield line.strip()
     if buf.strip():
         yield buf.strip()
+
+
+def prefix_with_query(prompt, lines):
+    """Prepend the prompt's own lines before the token stream lines."""
+    return itertools.chain(
+        (line.strip() for line in prompt.split("\n")),
+        lines,
+    )
 
 
 def format_chat(lines):
@@ -193,19 +200,11 @@ def wrap_output(events, width):
             yield textwrap.fill(event, width)
 
 
-def flush_output(events):
+def print_output(events):
     """Print events to stdout."""
     for event in events:
         print("" if event is None else event)
         sys.stdout.flush()
-
-
-def make_arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--width", type=int, default=None)
-    parser.add_argument("-r", "--raw", metavar="FILE", default=None)
-    parser.add_argument("query")
-    return parser
 
 
 def main():
@@ -214,18 +213,14 @@ def main():
     raw_file = open(args.raw, "w") if args.raw else None
 
     pipeline = from_ollama(args.query)
-    if raw_file:
-        pipeline = tee_raw_output(pipeline, raw_file)
+    if raw_file: pipeline = tee_raw_output(pipeline, raw_file)
     pipeline = tokenize_lines(pipeline)
     pipeline = prefix_with_query(args.query, pipeline)
     pipeline = format_chat(pipeline)
-    if args.width:
-        pipeline = wrap_output(pipeline, args.width)
+    if args.width: pipeline = wrap_output(pipeline, args.width)
+    print_output(pipeline)
 
-    flush_output(pipeline)
-
-    if raw_file:
-        raw_file.close()
+    if raw_file: raw_file.close()
 
 
 if __name__ == "__main__":
