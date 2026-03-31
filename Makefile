@@ -113,9 +113,7 @@ build/.train: build/data/train.jsonl build/.train-params
 	  --iters $(ITERS) \
 	  --batch-size $(BATCH) \
 	  --max-seq-length $(MAX_SEQ) \
-	  --grad-checkpoint \
-	  --lr-schedule cosine_decay \
-	  --warmup-steps 100
+	  --grad-checkpoint
 	@elapsed=$$(($$(date +%s) - $$(cat build/.train-start))); \
 	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 	touch build/.train
