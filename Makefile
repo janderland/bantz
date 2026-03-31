@@ -25,10 +25,10 @@ ITERS   ?= 1000       # Number of training steps. More iterations means longer
                       # model memorizes the training data instead of learning
                       # general patterns).
 
-BATCH   ?= 1          # Number of training examples processed per step. Higher
+BATCH   ?= 4          # Number of training examples processed per step. Higher
                       # values use more memory but produce more stable gradient
-                      # updates. On Apple Silicon, 1 is typical due to memory
-                      # constraints.
+                      # updates. Gradient checkpointing (enabled below) reduces
+                      # memory enough to use larger batches on Apple Silicon.
 
 MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
                       # longer than this are truncated. Lower values reduce
@@ -112,7 +112,10 @@ build/.train: build/data/train.jsonl build/.train-params
 	  --train \
 	  --iters $(ITERS) \
 	  --batch-size $(BATCH) \
-	  --max-seq-length $(MAX_SEQ)
+	  --max-seq-length $(MAX_SEQ) \
+	  --grad-checkpoint \
+	  --lr-schedule cosine_decay \
+	  --warmup-steps 100
 	@elapsed=$$(($$(date +%s) - $$(cat build/.train-start))); \
 	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 	touch build/.train
