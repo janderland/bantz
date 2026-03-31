@@ -15,6 +15,10 @@ WINDOW  ?= 6          # Number of preceding messages included as context for
                       # more conversational context to learn from, but produce
                       # longer examples which use more memory and slow training.
 
+VALID_SPLIT ?= 10     # Percentage of corpus examples held out for validation
+                      # (0-100). The validation set is used during training to
+                      # detect overfitting. Must be greater than 0.
+
 ITERS   ?= 1000       # Number of training steps. More iterations means longer
                       # training and potentially better results, but with
                       # diminishing returns and risk of overfitting (where the
@@ -96,7 +100,7 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 
 build/data/train.jsonl: build/.venv build/.corpus-params $(INPUT) scripts/corpus.py
 	mkdir -p build/data
-	. .venv/bin/activate && python3 scripts/corpus.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
+	. .venv/bin/activate && python3 scripts/corpus.py $(INPUT) build/data/train.jsonl --window $(WINDOW) --valid-split $(VALID_SPLIT)
 
 build/.train: build/data/train.jsonl build/.train-params
 	mkdir -p build/adapters
@@ -164,8 +168,8 @@ clean:
 
 build/.corpus-params: FORCE
 	@mkdir -p build
-	@printf 'WINDOW=%s\n' '$(WINDOW)' | cmp -s - $@ \
-		|| printf 'WINDOW=%s\n' '$(WINDOW)' > $@
+	@printf 'WINDOW=%s\nVALID_SPLIT=%s\n' '$(WINDOW)' '$(VALID_SPLIT)' | cmp -s - $@ \
+		|| printf 'WINDOW=%s\nVALID_SPLIT=%s\n' '$(WINDOW)' '$(VALID_SPLIT)' > $@
 
 build/.train-params: FORCE
 	@mkdir -p build

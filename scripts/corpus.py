@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import random
 from pathlib import Path
 
 from common import Message, load_usermap
@@ -18,6 +19,8 @@ def make_arg_parser() -> argparse.ArgumentParser:
                         help="File of OLD=NEW mappings, one per line (default: usermap)")
     parser.add_argument("-w", "--window", type=int, default=6, metavar="N",
                         help="Number of preceding messages used as context (default: 6)")
+    parser.add_argument("-s", "--valid-split", type=int, default=10, metavar="PCT",
+                        help="Percentage of examples held out for validation (0-100, default: 10)")
     return parser
 
 
@@ -127,8 +130,17 @@ def main() -> None:
     corpus = make_corpus(messages, args.window)
     print(f"  Generated {len(corpus)} examples")
 
-    write_corpus(corpus, args.output)
-    print(f"  Wrote {args.output}")
+    if args.valid_split > 0:
+        random.shuffle(corpus)
+        n_valid = int(len(corpus) * args.valid_split / 100)
+        valid_path = args.output.parent / "valid.jsonl"
+        write_corpus(corpus[:n_valid], valid_path)
+        print(f"  Wrote {n_valid} validation examples to {valid_path}")
+        write_corpus(corpus[n_valid:], args.output)
+        print(f"  Wrote {len(corpus) - n_valid} training examples to {args.output}")
+    else:
+        write_corpus(corpus, args.output)
+        print(f"  Wrote {len(corpus)} examples to {args.output}")
 
 
 if __name__ == "__main__":
