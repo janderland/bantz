@@ -119,7 +119,8 @@ build/.gguf: build/.fuse build/.venv-llama scripts/gguf.sh
 build/Modelfile: Modelfile.tmpl build/analysis.md
 	@mkdir -p build
 	awk 'FNR==NR{content=content $$0 "\n"; next} /\{\{ANALYSIS\}\}/{printf "%s", content; next} 1' \
-		build/analysis.md Modelfile.tmpl > build/Modelfile
+		build/analysis.md Modelfile.tmpl | \
+	sed 's|FROM build/|FROM $(CURDIR)/build/|' > build/Modelfile
 
 build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
