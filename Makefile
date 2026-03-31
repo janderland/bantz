@@ -5,7 +5,7 @@ BASE_MODEL ?= mlx-community/Llama-3.2-3B-Instruct  # HuggingFace model to fine-t
                                                    # "org/model-name". MLX-compatible models can
                                                    # be found at huggingface.co/mlx-community.
 
-ANALYSIS_MODEL ?= llama3.1:8b                      # Ollama model used for chat analysis. This
+PROMPT_MODEL ?= llama3.1:8b                        # Ollama model used for prompt generation. This
                                                    # must be an Ollama model name in the format
                                                    # "name:tag". Available models can be found
                                                    # at ollama.com/library.
@@ -142,9 +142,9 @@ build/Modelfile: Modelfile.tmpl build/analysis.md
 
 build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
-	ollama pull $(ANALYSIS_MODEL)
+	ollama pull $(PROMPT_MODEL)
 	@date +%s > build/.prompt-start
-	. .venv/bin/activate && python3 scripts/prompt.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
+	. .venv/bin/activate && python3 scripts/prompt.py $(INPUT) --model $(PROMPT_MODEL) --verbose \
 		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md
 	@elapsed=$$(($$(date +%s) - $$(cat build/.prompt-start))); \
 	printf '%s  prompt   %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
