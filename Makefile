@@ -10,7 +10,7 @@ PROMPT_MODEL ?= llama3.1:8b                        # Ollama model used for promp
                                                    # "name:tag". Available models can be found
                                                    # at ollama.com/library.
 
-WINDOW  ?= 6          # Number of preceding messages included as context for
+WINDOW ?= 6           # Number of preceding messages included as context for
                       # each training example. Larger values give the model
                       # more conversational context to learn from, but produce
                       # longer examples which use more memory and slow training.
@@ -19,13 +19,13 @@ VALID_SPLIT ?= 10     # Percentage of corpus examples held out for validation
                       # (0-100). The validation set is used during training to
                       # detect overfitting. Must be greater than 0.
 
-ITERS   ?= 1000       # Number of training steps. More iterations means longer
+ITERS ?= 1000         # Number of training steps. More iterations means longer
                       # training and potentially better results, but with
                       # diminishing returns and risk of overfitting (where the
                       # model memorizes the training data instead of learning
                       # general patterns).
 
-BATCH   ?= 4          # Number of training examples processed per step. Higher
+BATCH ?= 4            # Number of training examples processed per step. Higher
                       # values use more memory but produce more stable gradient
                       # updates. Gradient checkpointing (enabled below) reduces
                       # memory enough to use larger batches on Apple Silicon.
@@ -41,7 +41,7 @@ WIDTH   ?= 60         # Word-wrap width for chat output. Set to your terminal
 MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
                       # when generating the prompt.
 
-MAX_TOPICS  ?= 50     # Max number of high-anomaly words to consider when
+MAX_TOPICS ?= 50      # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
 .PHONY: help all deps corpus train fuse gguf run prompt clean FORCE
