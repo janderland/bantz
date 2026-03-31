@@ -58,6 +58,7 @@ deps:
 	@missing=""; \
 	command -v ollama     >/dev/null 2>&1 || missing="$$missing ollama"; \
 	command -v python3.10 >/dev/null 2>&1 || missing="$$missing python@3.10"; \
+	command -v jq         >/dev/null 2>&1 || missing="$$missing jq"; \
 	if [ -z "$$missing" ]; then \
 		printf 'All dependencies are installed.\n'; \
 	else \
@@ -97,23 +98,36 @@ build/data/train.jsonl: build/.venv build/.corpus-params $(INPUT) scripts/corpus
 	mkdir -p build/data
 	. .venv/bin/activate && python3 scripts/corpus.py $(INPUT) build/data/train.jsonl --window $(WINDOW)
 
-build/.train: build/data/train.jsonl build/.train-params scripts/train.sh
+build/.train: build/data/train.jsonl build/.train-params
 	mkdir -p build/adapters
-	start=$$(date +%s); \
-	bash scripts/train.sh $(BASE_MODEL) $(ITERS) $(BATCH) $(MAX_SEQ) && \
-	end=$$(date +%s) && \
-	elapsed=$$((end - start)) && \
+	@date +%s > build/.train-start
+	. .venv/bin/activate && mlx_lm.lora \
+	  --model $(BASE_MODEL) \
+	  --data build/data \
+	  --adapter-path build/adapters \
+	  --train \
+	  --iters $(ITERS) \
+	  --batch-size $(BATCH) \
+	  --max-seq-length $(MAX_SEQ)
+	@elapsed=$$(($$(date +%s) - $$(cat build/.train-start))); \
 	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 	touch build/.train
 
-build/.fuse: build/.train scripts/fuse.sh
+build/.fuse: build/.train
 	mkdir -p build/model
-	bash scripts/fuse.sh $(BASE_MODEL)
+	. .venv/bin/activate && mlx_lm.fuse \
+	  --model $(BASE_MODEL) \
+	  --adapter-path build/adapters \
+	  --save-path build/model
+	jq '.tokenizer_class = "PreTrainedTokenizerFast"' build/model/tokenizer_config.json \
+	  > build/model/tokenizer_config.tmp.json
+	mv build/model/tokenizer_config.tmp.json build/model/tokenizer_config.json
 	touch build/.fuse
 
-build/.gguf: build/.fuse build/.venv-llama scripts/gguf.sh
+build/.gguf: build/.fuse build/.venv-llama
 	mkdir -p build/gguf
-	bash scripts/gguf.sh
+	. llama.cpp/.venv/bin/activate && python llama.cpp/convert_hf_to_gguf.py \
+	  build/model --outfile build/gguf/bantz-model.gguf
 	touch build/.gguf
 
 build/Modelfile: Modelfile.tmpl build/analysis.md
@@ -125,11 +139,10 @@ build/Modelfile: Modelfile.tmpl build/analysis.md
 build/analysis.md: build/.venv $(INPUT)
 	@mkdir -p build
 	ollama pull $(ANALYSIS_MODEL)
-	start=$$(date +%s); \
+	@date +%s > build/.prompt-start
 	. .venv/bin/activate && python3 scripts/prompt.py $(INPUT) --model $(ANALYSIS_MODEL) --verbose \
-		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md && \
-	end=$$(date +%s) && \
-	elapsed=$$((end - start)) && \
+		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md
+	@elapsed=$$(($$(date +%s) - $$(cat build/.prompt-start))); \
 	printf '%s  prompt   %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
 
 build/.ollama: build/.gguf build/Modelfile
