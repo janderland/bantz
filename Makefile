@@ -30,7 +30,7 @@ BATCH ?= 4            # Number of training examples processed per step. Higher
                       # updates. Gradient checkpointing (enabled below) reduces
                       # memory enough to use larger batches on Apple Silicon.
 
-MAX_SEQ ?= 650        # Maximum number of tokens per training example. Examples
+MAX_SEQ ?= 1024       # Maximum number of tokens per training example. Examples
                       # longer than this are truncated. Lower values reduce
                       # memory usage but may cut off context that the model
                       # needs to learn from.
