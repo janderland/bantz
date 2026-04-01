@@ -5,75 +5,75 @@
 
 # --- General topics ---
 Jander: what should we cook for dinner tonight
-Jander: anyone have plans this weekend
-Jander: I just watched a movie last night, it was really good
-Jander: has the weather been weird for anyone else lately
-Jander: ok I started a new show and I can't stop watching it
-Jander: what have you guys been listening to lately
-Jander: something funny happened at work today
-Jander: we should try that new restaurant that opened downtown
-Jander: I'm going on vacation next month, pretty excited
+Abhi: anyone have plans this weekend
+CoreySimons: I just watched a movie last night, it was really good
+Dave: has the weather been weird for anyone else lately
+Ivan: ok I started a new show and I can't stop watching it
+JustinKoh: what have you guys been listening to lately
+RomanMatiasko: something funny happened at work today
+TaylorTroesh: we should try that new restaurant that opened downtown
+W: I'm going on vacation next month, pretty excited
 Jander: I finally finished that book I've been reading forever
-Jander: I've been playing this game nonstop, it's so good
-Jander: thinking about doing some home improvement stuff, any advice
-Jander: it's someone's birthday coming up, what should we do
-Jander: did you guys watch the game last night
-Jander: I picked up a new hobby recently and I'm obsessed
-Jander: what's the best coffee shop around here, I need a new spot
-Jander: what is everyone doing for the holidays
-Jander: I've been listening to this podcast on repeat
+Abhi: I've been playing this game nonstop, it's so good
+CoreySimons: thinking about doing some home improvement stuff, any advice
+Dave: it's someone's birthday coming up, what should we do
+Ivan: did you guys watch the game last night
+JustinKoh: I picked up a new hobby recently and I'm obsessed
+RomanMatiasko: what's the best coffee shop around here, I need a new spot
+TaylorTroesh: what is everyone doing for the holidays
+W: I've been listening to this podcast on repeat
 Jander: working from home is making me lose my mind
-Jander: thinking about doing a road trip, anyone want to come
+Abhi: thinking about doing a road trip, anyone want to come
 
 # --- Opinion and debate starters ---
-Jander: hot take: remote work is better than going into the office
-Jander: ok genuinely asking, does pineapple belong on pizza or not
-Jander: I think [latest popular movie] was overrated, fight me
-Jander: unpopular opinion but I actually like Mondays
-Jander: is it worth paying more for a nicer apartment or just save the money
-Jander: tabs or spaces, this is important
-Jander: I think [popular sports team] is going to have a terrible season
-Jander: morning person or night owl, which is actually better
-Jander: is social media making everyone miserable or is that just me
+CoreySimons: hot take: remote work is better than going into the office
+Dave: ok genuinely asking, does pineapple belong on pizza or not
+Ivan: unpopular opinion but I actually like Mondays
+JustinKoh: is it worth paying more for a nicer apartment or just save the money
+RomanMatiasko: tabs or spaces, this is important
+TaylorTroesh: morning person or night owl, which is actually better
+W: is social media making everyone miserable or is that just me
 Jander: I don't think coffee actually does anything for me anymore
+Abhi: I think that movie was totally overrated, fight me
+CoreySimons: I think they're going to have a terrible season
 
 # --- Short openers ---
-Jander: thoughts?
-Jander: ok so
-Jander: anyone else
-Jander: this is unrelated but
-Jander: wait actually
-Jander: not to be dramatic but
+Dave: thoughts?
+Ivan: ok so
+JustinKoh: anyone else
+RomanMatiasko: this is unrelated but
+TaylorTroesh: wait actually
+W: not to be dramatic but
 Jander: I can't decide
-Jander: so this happened
+Abhi: so this happened
 
 # --- Personal news and updates ---
-Jander: I just got back from my trip, a lot happened
-Jander: I'm seriously considering quitting my job and traveling for a year
-Jander: trying to decide between two apartments, can I get some opinions
-Jander: we should do a camping trip, who's in
-Jander: I just adopted a dog and have no idea what I'm doing
-Jander: I tried cooking something new and it did not go well
-Jander: I'm thinking about going back to school, not sure if it's worth it
+CoreySimons: I just got back from my trip, a lot happened
+Dave: I'm seriously considering quitting my job and traveling for a year
+Ivan: trying to decide between two apartments, can I get some opinions
+JustinKoh: we should do a camping trip, who's in
+RomanMatiasko: I just adopted a dog and have no idea what I'm doing
+TaylorTroesh: I tried cooking something new and it did not go well
+W: I'm thinking about going back to school, not sure if it's worth it
 Jander: ok we need to figure out a group Halloween costume
-Jander: I got some news at work today, good news actually
-Jander: I heard something and I don't know if I should say anything
+Abhi: I got some news at work today, good news actually
+CoreySimons: I heard something and I don't know if I should say anything
 
 # --- Prompts likely to trigger quoting ---
-Jander: wait didn't you say earlier that you hated that
-Jander: I'm going to need someone to explain what they meant by that
-Jander: ok I want to revisit something from before
-Jander: you literally just contradicted yourself
-Jander: I agree with what someone said earlier
-Jander: can we go back to what was said about that
+Dave: wait didn't you say earlier that you hated that
+Ivan: I'm going to need someone to explain what they meant by that
+JustinKoh: ok I want to revisit something from before
+RomanMatiasko: you literally just contradicted yourself
+TaylorTroesh: I agree with what someone said earlier
+W: can we go back to what was said about that
 Jander: that's not what you said before though
-Jander: someone said something earlier that I can't stop thinking about
-Jander: I want to push back on that
-Jander: that's exactly my point, thank you
+Abhi: someone said something earlier that I can't stop thinking about
+CoreySimons: I want to push back on that
+Dave: that's exactly my point, thank you
 
 # --- Longer scene setters ---
-Jander: ok so I've been thinking a lot about where I want to be in five years and I honestly have no idea
-Jander: we haven't talked in a while and I have a lot of updates
-Jander: alright I need help planning this thing, it's gotten complicated
-Jander: this conversation started about one thing and now I don't even know what we're talking about
-Jander: ok who wants to hear my most embarrassing story
+Ivan: ok so I've been thinking a lot about where I want to be in five years and I honestly have no idea
+JustinKoh: we haven't talked in a while and I have a lot of updates
+RomanMatiasko: alright I need help planning this thing, it's gotten complicated
+TaylorTroesh: this conversation started about one thing and now I don't even know what we're talking about
+W: ok who wants to hear my most embarrassing story
