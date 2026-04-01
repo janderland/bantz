@@ -12,18 +12,19 @@ SPECIAL_TOKEN = re.compile(r'<\|[^|]*\|>')
 
 def make_arg_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model", default="bantz")
     parser.add_argument("-w", "--width", type=int, default=None)
     parser.add_argument("-r", "--raw", metavar="FILE", default=None)
     parser.add_argument("query")
     return parser
 
 
-def from_ollama(prompt):
+def from_ollama(prompt, model):
     """Stream raw tokens from the Ollama API."""
     req = urllib.request.Request(
         "http://localhost:11434/api/generate",
         headers={"Content-Type": "application/json"},
-        data=json.dumps({"model": "bantz", "prompt": prompt, "stream": True}).encode(),
+        data=json.dumps({"model": model, "prompt": prompt, "stream": True}).encode(),
     )
     with urllib.request.urlopen(req) as resp:
         for raw_line in resp:
@@ -212,7 +213,7 @@ def main():
 
     raw_file = open(args.raw, "w") if args.raw else None
 
-    pipeline = from_ollama(args.query)
+    pipeline = from_ollama(args.query, args.model)
     if raw_file: pipeline = tee_raw_output(pipeline, raw_file)
     pipeline = tokenize_lines(pipeline)
     pipeline = prefix_with_query(args.query, pipeline)

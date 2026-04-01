@@ -1,0 +1,78 @@
+# Bantz test prompts — one per line, # for comments
+# These cover a range of topics and scenarios to evaluate bot quality.
+# Add more prompts to grow the test suite.
+
+# --- General topics ---
+Have a conversation about what to cook for dinner tonight.
+Talk about plans for the upcoming weekend.
+Discuss a recent movie someone watched.
+Chat about the weather and whether it's been good lately.
+Have a conversation about a new TV show someone started watching.
+Discuss what music everyone has been listening to lately.
+Talk about a funny thing that happened at work this week.
+Have a conversation about trying a new restaurant.
+Chat about someone's upcoming vacation plans.
+Discuss a book someone recently finished reading.
+Talk about a video game someone has been playing.
+Have a conversation about home improvement projects.
+Discuss what to do for someone's birthday.
+Chat about a sports game that happened recently.
+Talk about a new hobby someone picked up.
+Have a conversation about the best coffee shops in town.
+Discuss everyone's plans for the holidays.
+Chat about a podcast someone has been obsessed with.
+Talk about working from home vs going into the office.
+Have a conversation about a road trip someone is planning.
+
+# --- Scenarios that invite quoting ---
+Someone shares an opinion and others debate it.
+Someone says something controversial and the group pushes back.
+Two people disagree about the best way to do something, and a third weighs in.
+Someone makes a prediction earlier in the chat and someone else follows up on it.
+Someone shares good news and people react and ask follow-up questions.
+A debate breaks out about whether pineapple belongs on pizza.
+Someone proposes a plan and others poke holes in it.
+Two people have a friendly argument about a sports team.
+Someone says something funny and others riff on it.
+Someone complains about something and others either commiserate or disagree.
+
+# --- Short prompts ---
+Talk about food.
+Chat about the weekend.
+Have a quick conversation.
+Discuss something funny.
+Talk about work.
+Chat about a game.
+Have a conversation about travel.
+Discuss something annoying.
+
+# --- Longer contextual prompts ---
+Someone just got back from a trip and is telling the group about it. Have a conversation where they share highlights and others ask questions.
+A friend is considering quitting their job to travel for a year. The group debates whether this is a good idea.
+Someone is trying to decide between two apartments and asks the group for advice.
+The group is trying to coordinate a camping trip but everyone has different schedules.
+Someone just adopted a dog and is asking the group for advice about training it.
+A friend is learning to cook and keeps having disasters. The group offers tips and shares their own kitchen failures.
+Someone is considering going back to school and the group discusses whether it's worth it.
+The group is planning a group Halloween costume and can't agree on a theme.
+Someone just got a promotion and the group celebrates, then starts asking them about the new role.
+A friend found out some gossip and is deciding whether to tell the group.
+
+# --- Edge cases likely to trigger quote issues ---
+Have a debate where people frequently quote each other's earlier points.
+Someone is passive-aggressive and keeps referencing things said earlier.
+A conversation where someone keeps bringing up what someone else said.
+Have a heated argument where people quote each other to call out inconsistencies.
+A conversation where someone agrees with an earlier point by quoting it back.
+Have a discussion where someone extensively quotes a previous statement to dissect it.
+A conversation where quotes are used for sarcasm or mockery.
+Discuss a text conversation someone shared with the group, quoting parts of it.
+Someone reads out loud from an article and others react to specific quotes.
+Have a conversation where someone's earlier words come back to haunt them.
+
+# --- Topics that produce longer, more complex outputs ---
+A wide-ranging conversation about life goals and where everyone sees themselves in five years.
+The group catches up after not talking for a while — lots of updates to share.
+A planning session for a big group event with lots of logistics to figure out.
+A conversation that starts with one topic but keeps going off on tangents.
+Everyone shares their most embarrassing story and reacts to each other's.

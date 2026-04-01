@@ -1,3 +1,14 @@
+VERSION ?= default             # Name of the bot version to build. Each version gets its
+                               # own build directory and Ollama model name (bantz-VERSION).
+                               # Version-specific parameters are loaded from
+                               # versions/$(VERSION)/config.mk if it exists.
+
+-include versions/$(VERSION)/config.mk
+
+CORPUS_SCRIPT ?= scripts/corpus.py   # corpus.py to use for this version.
+CHAT_SCRIPT   ?= scripts/chat.py     # chat.py to use for this version.
+PROMPT_SCRIPT ?= scripts/prompt.py   # prompt.py to use for this version.
+
 INPUT ?= input.md   # Chat log to parse into training data.
 
 BASE_MODEL ?= mlx-community/Llama-3.2-3B-Instruct  # HuggingFace model to fine-tune. This must
@@ -44,19 +55,26 @@ MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
 MAX_TOPICS ?= 50      # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
-.PHONY: help all deps corpus train fuse gguf run prompt clean FORCE
+BUILD_DIR = build/$(VERSION)
+
+.PHONY: help all deps corpus train fuse gguf run prompt test versions clean clean-all FORCE
 
 help:
 	@printf 'Targets:\n'
-	@printf '  all      Build everything and register the model with Ollama\n'
-	@printf '  deps     Check system dependencies and install missing ones via brew\n'
-	@printf '  corpus   Parse the chat log into training data (JSONL)\n'
-	@printf '  prompt   Analyze the chat log for personality notes and group references\n'
-	@printf '  train    Fine-tune the base model on the training corpus\n'
-	@printf '  fuse     Merge the LoRA adapters into the base model weights\n'
-	@printf '  gguf     Convert the fused model to GGUF format\n'
-	@printf '  run      Chat with the trained model\n'
-	@printf '  clean    Remove all build artifacts\n'
+	@printf '  all       Build everything and register the model with Ollama\n'
+	@printf '  deps      Check system dependencies and install missing ones via brew\n'
+	@printf '  corpus    Parse the chat log into training data (JSONL)\n'
+	@printf '  prompt    Analyze the chat log for personality notes and group references\n'
+	@printf '  train     Fine-tune the base model on the training corpus\n'
+	@printf '  fuse      Merge the LoRA adapters into the base model weights\n'
+	@printf '  gguf      Convert the fused model to GGUF format\n'
+	@printf '  run       Chat with the trained model\n'
+	@printf '  test      Run the test suite against the trained model\n'
+	@printf '  versions  List available versions\n'
+	@printf '  clean     Remove build artifacts for the current version\n'
+	@printf '  clean-all Remove all build artifacts\n'
+	@printf '\nParameters:\n'
+	@printf '  VERSION=name  Version to build (default: default)\n'
 
 deps:
 	@missing=""; \
@@ -75,11 +93,11 @@ deps:
 		esac; \
 	fi
 
-all: build/.ollama
-corpus: build/data/train.jsonl
-train: build/.train
-fuse: build/.fuse
-gguf: build/.gguf
+all: $(BUILD_DIR)/.ollama
+corpus: $(BUILD_DIR)/data/train.jsonl
+train: $(BUILD_DIR)/.train
+fuse: $(BUILD_DIR)/.fuse
+gguf: $(BUILD_DIR)/.gguf
 
 build/.venv: requirements.txt
 	mkdir -p build
@@ -98,68 +116,77 @@ build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
-build/data/train.jsonl: build/.venv build/.corpus-params $(INPUT) scripts/corpus.py
-	mkdir -p build/data
-	. .venv/bin/activate && python3 scripts/corpus.py $(INPUT) build/data/train.jsonl --window $(WINDOW) --valid-split $(VALID_SPLIT)
+$(BUILD_DIR)/data/train.jsonl: build/.venv $(BUILD_DIR)/.corpus-params $(INPUT) $(CORPUS_SCRIPT)
+	mkdir -p $(BUILD_DIR)/data
+	. .venv/bin/activate && python3 $(CORPUS_SCRIPT) $(INPUT) $(BUILD_DIR)/data/train.jsonl --window $(WINDOW) --valid-split $(VALID_SPLIT)
 
-build/.train: build/data/train.jsonl build/.train-params
-	mkdir -p build/adapters
-	@date +%s > build/.train-start
+$(BUILD_DIR)/.train: $(BUILD_DIR)/data/train.jsonl $(BUILD_DIR)/.train-params
+	mkdir -p $(BUILD_DIR)/adapters
+	@date +%s > $(BUILD_DIR)/.train-start
 	. .venv/bin/activate && mlx_lm.lora \
 	  --model $(BASE_MODEL) \
-	  --data build/data \
-	  --adapter-path build/adapters \
+	  --data $(BUILD_DIR)/data \
+	  --adapter-path $(BUILD_DIR)/adapters \
 	  --train \
 	  --iters $(ITERS) \
 	  --batch-size $(BATCH) \
 	  --max-seq-length $(MAX_SEQ) \
 	  --grad-checkpoint
-	@elapsed=$$(($$(date +%s) - $$(cat build/.train-start))); \
-	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
-	touch build/.train
+	@elapsed=$$(($$(date +%s) - $$(cat $(BUILD_DIR)/.train-start))); \
+	printf '%s  train    %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> $(BUILD_DIR)/timings.log
+	touch $(BUILD_DIR)/.train
 
-build/.fuse: build/.train
-	mkdir -p build/model
+$(BUILD_DIR)/.fuse: $(BUILD_DIR)/.train
+	mkdir -p $(BUILD_DIR)/model
 	. .venv/bin/activate && mlx_lm.fuse \
 	  --model $(BASE_MODEL) \
-	  --adapter-path build/adapters \
-	  --save-path build/model
-	jq '.tokenizer_class = "PreTrainedTokenizerFast"' build/model/tokenizer_config.json \
-	  > build/model/tokenizer_config.tmp.json
-	mv build/model/tokenizer_config.tmp.json build/model/tokenizer_config.json
-	touch build/.fuse
+	  --adapter-path $(BUILD_DIR)/adapters \
+	  --save-path $(BUILD_DIR)/model
+	jq '.tokenizer_class = "PreTrainedTokenizerFast"' $(BUILD_DIR)/model/tokenizer_config.json \
+	  > $(BUILD_DIR)/model/tokenizer_config.tmp.json
+	mv $(BUILD_DIR)/model/tokenizer_config.tmp.json $(BUILD_DIR)/model/tokenizer_config.json
+	touch $(BUILD_DIR)/.fuse
 
-build/.gguf: build/.fuse build/.venv-llama
-	mkdir -p build/gguf
+$(BUILD_DIR)/.gguf: $(BUILD_DIR)/.fuse build/.venv-llama
+	mkdir -p $(BUILD_DIR)/gguf
 	. llama.cpp/.venv/bin/activate && python llama.cpp/convert_hf_to_gguf.py \
-	  build/model --outfile build/gguf/bantz-model.gguf
-	touch build/.gguf
+	  $(BUILD_DIR)/model --outfile $(BUILD_DIR)/gguf/bantz-model.gguf
+	touch $(BUILD_DIR)/.gguf
 
-build/Modelfile: Modelfile.tmpl build/analysis.md
-	@mkdir -p build
+$(BUILD_DIR)/Modelfile: Modelfile.tmpl $(BUILD_DIR)/analysis.md
+	@mkdir -p $(BUILD_DIR)
 	awk 'FNR==NR{content=content $$0 "\n"; next} /\{\{ANALYSIS\}\}/{printf "%s", content; next} 1' \
-		build/analysis.md Modelfile.tmpl | \
-	sed 's|FROM build/|FROM $(CURDIR)/build/|' > build/Modelfile
+		$(BUILD_DIR)/analysis.md Modelfile.tmpl | \
+	sed 's|FROM build/|FROM $(CURDIR)/$(BUILD_DIR)/|' > $(BUILD_DIR)/Modelfile
 
-build/analysis.md: build/.venv $(INPUT)
-	@mkdir -p build
+$(BUILD_DIR)/analysis.md: build/.venv $(INPUT)
+	@mkdir -p $(BUILD_DIR)
 	ollama pull $(PROMPT_MODEL)
-	@date +%s > build/.prompt-start
-	. .venv/bin/activate && python3 scripts/prompt.py $(INPUT) --model $(PROMPT_MODEL) --verbose \
-		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output build/analysis.md
-	@elapsed=$$(($$(date +%s) - $$(cat build/.prompt-start))); \
-	printf '%s  prompt   %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> build/timings.log
+	@date +%s > $(BUILD_DIR)/.prompt-start
+	. .venv/bin/activate && python3 $(PROMPT_SCRIPT) $(INPUT) --model $(PROMPT_MODEL) --verbose \
+		--max-phrases $(MAX_PHRASES) --max-topics $(MAX_TOPICS) --output $(BUILD_DIR)/analysis.md
+	@elapsed=$$(($$(date +%s) - $$(cat $(BUILD_DIR)/.prompt-start))); \
+	printf '%s  prompt   %dm %ds\n' "$$(date '+%Y-%m-%d %H:%M:%S')" $$((elapsed / 60)) $$((elapsed % 60)) >> $(BUILD_DIR)/timings.log
 
-build/.ollama: build/.gguf build/Modelfile
-	ollama create bantz -f build/Modelfile
-	touch build/.ollama
+$(BUILD_DIR)/.ollama: $(BUILD_DIR)/.gguf $(BUILD_DIR)/Modelfile
+	ollama create bantz-$(VERSION) -f $(BUILD_DIR)/Modelfile
+	touch $(BUILD_DIR)/.ollama
 
-run: build/.ollama build/.venv
-	. .venv/bin/activate && python3 scripts/chat.py --width $(WIDTH) "$(PROMPT)"
+run: $(BUILD_DIR)/.ollama build/.venv
+	. .venv/bin/activate && python3 $(CHAT_SCRIPT) --model bantz-$(VERSION) --width $(WIDTH) "$(PROMPT)"
 
-prompt: build/analysis.md
+prompt: $(BUILD_DIR)/analysis.md
+
+test: $(BUILD_DIR)/.ollama build/.venv
+	. .venv/bin/activate && python3 tests/run_tests.py --model bantz-$(VERSION)
+
+versions:
+	@ls versions/ 2>/dev/null || printf '(no versions defined)\n'
 
 clean:
+	rm -rf $(BUILD_DIR) .venv llama.cpp/.venv
+
+clean-all:
 	rm -rf build .venv llama.cpp/.venv
 
 # Parameter stamp files: each file stores the current values of the parameters
@@ -167,12 +194,12 @@ clean:
 # the file is only written (and thus made newer than its dependents) when the
 # values have actually changed. This triggers a rebuild of the affected step.
 
-build/.corpus-params: FORCE
-	@mkdir -p build
+$(BUILD_DIR)/.corpus-params: FORCE
+	@mkdir -p $(BUILD_DIR)
 	@printf 'WINDOW=%s\nVALID_SPLIT=%s\n' '$(WINDOW)' '$(VALID_SPLIT)' | cmp -s - $@ \
 		|| printf 'WINDOW=%s\nVALID_SPLIT=%s\n' '$(WINDOW)' '$(VALID_SPLIT)' > $@
 
-build/.train-params: FORCE
-	@mkdir -p build
+$(BUILD_DIR)/.train-params: FORCE
+	@mkdir -p $(BUILD_DIR)
 	@printf 'BASE_MODEL=%s\nITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(BASE_MODEL)' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' | cmp -s - $@ \
 		|| printf 'BASE_MODEL=%s\nITERS=%s\nBATCH=%s\nMAX_SEQ=%s\n' '$(BASE_MODEL)' '$(ITERS)' '$(BATCH)' '$(MAX_SEQ)' > $@
