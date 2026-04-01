@@ -1,78 +1,79 @@
 # Bantz test prompts — one per line, # for comments
-# These cover a range of topics and scenarios to evaluate bot quality.
+# Each prompt is the opening message of a conversation, formatted as
+# "Speaker: message" to match the training data format.
 # Add more prompts to grow the test suite.
 
 # --- General topics ---
-Have a conversation about what to cook for dinner tonight.
-Talk about plans for the upcoming weekend.
-Discuss a recent movie someone watched.
-Chat about the weather and whether it's been good lately.
-Have a conversation about a new TV show someone started watching.
-Discuss what music everyone has been listening to lately.
-Talk about a funny thing that happened at work this week.
-Have a conversation about trying a new restaurant.
-Chat about someone's upcoming vacation plans.
-Discuss a book someone recently finished reading.
-Talk about a video game someone has been playing.
-Have a conversation about home improvement projects.
-Discuss what to do for someone's birthday.
-Chat about a sports game that happened recently.
-Talk about a new hobby someone picked up.
-Have a conversation about the best coffee shops in town.
-Discuss everyone's plans for the holidays.
-Chat about a podcast someone has been obsessed with.
-Talk about working from home vs going into the office.
-Have a conversation about a road trip someone is planning.
+Jander: what should we cook for dinner tonight
+Jander: anyone have plans this weekend
+Jander: I just watched a movie last night, it was really good
+Jander: has the weather been weird for anyone else lately
+Jander: ok I started a new show and I can't stop watching it
+Jander: what have you guys been listening to lately
+Jander: something funny happened at work today
+Jander: we should try that new restaurant that opened downtown
+Jander: I'm going on vacation next month, pretty excited
+Jander: I finally finished that book I've been reading forever
+Jander: I've been playing this game nonstop, it's so good
+Jander: thinking about doing some home improvement stuff, any advice
+Jander: it's someone's birthday coming up, what should we do
+Jander: did you guys watch the game last night
+Jander: I picked up a new hobby recently and I'm obsessed
+Jander: what's the best coffee shop around here, I need a new spot
+Jander: what is everyone doing for the holidays
+Jander: I've been listening to this podcast on repeat
+Jander: working from home is making me lose my mind
+Jander: thinking about doing a road trip, anyone want to come
 
-# --- Scenarios that invite quoting ---
-Someone shares an opinion and others debate it.
-Someone says something controversial and the group pushes back.
-Two people disagree about the best way to do something, and a third weighs in.
-Someone makes a prediction earlier in the chat and someone else follows up on it.
-Someone shares good news and people react and ask follow-up questions.
-A debate breaks out about whether pineapple belongs on pizza.
-Someone proposes a plan and others poke holes in it.
-Two people have a friendly argument about a sports team.
-Someone says something funny and others riff on it.
-Someone complains about something and others either commiserate or disagree.
+# --- Opinion and debate starters ---
+Jander: hot take: remote work is better than going into the office
+Jander: ok genuinely asking, does pineapple belong on pizza or not
+Jander: I think [latest popular movie] was overrated, fight me
+Jander: unpopular opinion but I actually like Mondays
+Jander: is it worth paying more for a nicer apartment or just save the money
+Jander: tabs or spaces, this is important
+Jander: I think [popular sports team] is going to have a terrible season
+Jander: morning person or night owl, which is actually better
+Jander: is social media making everyone miserable or is that just me
+Jander: I don't think coffee actually does anything for me anymore
 
-# --- Short prompts ---
-Talk about food.
-Chat about the weekend.
-Have a quick conversation.
-Discuss something funny.
-Talk about work.
-Chat about a game.
-Have a conversation about travel.
-Discuss something annoying.
+# --- Short openers ---
+Jander: thoughts?
+Jander: ok so
+Jander: anyone else
+Jander: this is unrelated but
+Jander: wait actually
+Jander: not to be dramatic but
+Jander: I can't decide
+Jander: so this happened
 
-# --- Longer contextual prompts ---
-Someone just got back from a trip and is telling the group about it. Have a conversation where they share highlights and others ask questions.
-A friend is considering quitting their job to travel for a year. The group debates whether this is a good idea.
-Someone is trying to decide between two apartments and asks the group for advice.
-The group is trying to coordinate a camping trip but everyone has different schedules.
-Someone just adopted a dog and is asking the group for advice about training it.
-A friend is learning to cook and keeps having disasters. The group offers tips and shares their own kitchen failures.
-Someone is considering going back to school and the group discusses whether it's worth it.
-The group is planning a group Halloween costume and can't agree on a theme.
-Someone just got a promotion and the group celebrates, then starts asking them about the new role.
-A friend found out some gossip and is deciding whether to tell the group.
+# --- Personal news and updates ---
+Jander: I just got back from my trip, a lot happened
+Jander: I'm seriously considering quitting my job and traveling for a year
+Jander: trying to decide between two apartments, can I get some opinions
+Jander: we should do a camping trip, who's in
+Jander: I just adopted a dog and have no idea what I'm doing
+Jander: I tried cooking something new and it did not go well
+Jander: I'm thinking about going back to school, not sure if it's worth it
+Jander: ok we need to figure out a group Halloween costume
+Jander: I got some news at work today, good news actually
+Jander: I heard something and I don't know if I should say anything
 
-# --- Edge cases likely to trigger quote issues ---
-Have a debate where people frequently quote each other's earlier points.
-Someone is passive-aggressive and keeps referencing things said earlier.
-A conversation where someone keeps bringing up what someone else said.
-Have a heated argument where people quote each other to call out inconsistencies.
-A conversation where someone agrees with an earlier point by quoting it back.
-Have a discussion where someone extensively quotes a previous statement to dissect it.
-A conversation where quotes are used for sarcasm or mockery.
-Discuss a text conversation someone shared with the group, quoting parts of it.
-Someone reads out loud from an article and others react to specific quotes.
-Have a conversation where someone's earlier words come back to haunt them.
+# --- Prompts likely to trigger quoting ---
+Jander: wait didn't you say earlier that you hated that
+Jander: I'm going to need someone to explain what they meant by that
+Jander: ok I want to revisit something from before
+Jander: you literally just contradicted yourself
+Jander: I agree with what someone said earlier
+Jander: can we go back to what was said about that
+Jander: that's not what you said before though
+Jander: someone said something earlier that I can't stop thinking about
+Jander: I want to push back on that
+Jander: that's exactly my point, thank you
 
-# --- Topics that produce longer, more complex outputs ---
-A wide-ranging conversation about life goals and where everyone sees themselves in five years.
-The group catches up after not talking for a while — lots of updates to share.
-A planning session for a big group event with lots of logistics to figure out.
-A conversation that starts with one topic but keeps going off on tangents.
-Everyone shares their most embarrassing story and reacts to each other's.
+# --- Longer scene setters ---
+Jander: ok so I've been thinking a lot about where I want to be in five years and I honestly have no idea
+Jander: we haven't talked in a while and I have a lot of updates
+Jander: alright I need help planning this thing, it's gotten complicated
+Jander: this conversation started about one thing and now I don't even know what we're talking about
+Jander: ok who wants to hear my most embarrassing story
