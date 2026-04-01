@@ -1,13 +1,15 @@
-VERSION ?= default             # Name of the bot version to build. Each version gets its
-                               # own build directory and Ollama model name (bantz-VERSION).
-                               # Version-specific parameters are loaded from
-                               # versions/$(VERSION)/config.mk if it exists.
+# Name of the bot version to build. Each version gets its own build directory
+# and Ollama model name (bantz-VERSION). Version-specific parameters are loaded
+# from versions/$(VERSION).mk if it exists.
+VERSION ?= default
 
--include versions/$(VERSION)/config.mk
+-include versions/$(VERSION).mk
 
-CORPUS_SCRIPT ?= scripts/corpus.py   # corpus.py to use for this version.
-CHAT_SCRIPT   ?= scripts/chat.py     # chat.py to use for this version.
-PROMPT_SCRIPT ?= scripts/prompt.py   # prompt.py to use for this version.
+# Scripts used for each pipeline stage. Override in versions/$(VERSION).mk to
+# use version-specific scripts.
+CORPUS_SCRIPT ?= scripts/corpus.py
+CHAT_SCRIPT   ?= scripts/chat.py
+PROMPT_SCRIPT ?= scripts/prompt.py
 
 INPUT ?= input.md   # Chat log to parse into training data.
 
@@ -55,7 +57,7 @@ MAX_PHRASES ?= 100    # Max number of frequent multi-word phrases to consider
 MAX_TOPICS ?= 50      # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
-BUILD_DIR = build/$(VERSION)
+BUILD_DIR = build/$(strip $(VERSION))
 
 .PHONY: help all deps corpus train fuse gguf run prompt test versions clean clean-all FORCE
 
@@ -181,7 +183,7 @@ test: $(BUILD_DIR)/.ollama build/.venv
 	. .venv/bin/activate && python3 tests/run_tests.py --model bantz-$(VERSION)
 
 versions:
-	@ls versions/ 2>/dev/null || printf '(no versions defined)\n'
+	@ls versions/*.mk 2>/dev/null | sed 's|versions/||;s|\.mk$$||' || printf '(no versions defined)\n'
 
 clean:
 	rm -rf $(BUILD_DIR) .venv llama.cpp/.venv

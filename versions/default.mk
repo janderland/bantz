@@ -1,5 +1,5 @@
 # Default version — matches the built-in Makefile defaults.
-# Copy this file to versions/myversion/config.mk and change values as needed.
+# Copy this file to versions/myversion.mk and change values as needed.
 # Use plain = (not ?=) so these override the defaults in the Makefile.
 # Command-line overrides (e.g. make WINDOW=12) still take precedence over everything.
 
@@ -15,7 +15,8 @@
 # MAX_PHRASES = 100
 # MAX_TOPICS = 50
 
-# To use a version-specific script, uncomment and set the path:
+# To use version-specific scripts, place them in versions/myversion/scripts/
+# and uncomment the relevant lines:
 # CORPUS_SCRIPT = versions/default/scripts/corpus.py
 # CHAT_SCRIPT   = versions/default/scripts/chat.py
 # PROMPT_SCRIPT = versions/default/scripts/prompt.py
