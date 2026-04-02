@@ -50,8 +50,8 @@ MAX_TOPICS ?= 50      # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
 CORPUS_SCRIPT ?= scripts/corpus.py   # Scripts used for each pipeline stage.
-CHAT_SCRIPT   ?= scripts/chat.py     # Override in versions/$(VERSION).mk to
-PROMPT_SCRIPT ?= scripts/prompt.py   # use version-specific scripts.
+PROMPT_SCRIPT ?= scripts/prompt.py   # Override in versions/$(VERSION).mk to
+CHAT_SCRIPT   ?= scripts/chat.py     # use version-specific scripts.
 
 BUILD_DIR = build/$(strip $(VERSION))
 
