@@ -53,10 +53,9 @@ CORPUS_SCRIPT ?= scripts/corpus.py   # Scripts used for each pipeline stage.
 PROMPT_SCRIPT ?= scripts/prompt.py   # Override in versions/$(VERSION).mk to
 CHAT_SCRIPT   ?= scripts/chat.py     # use version-specific scripts.
 
-BUILD_DIR = build/$(strip $(VERSION))
-
-# Include the overriden values for the selected version.
 -include versions/$(VERSION).mk
+
+BUILD_DIR = build/$(strip $(VERSION))
 
 .PHONY: help all deps corpus train fuse gguf run prompt test versions clean clean-all FORCE
 
@@ -101,28 +100,28 @@ fuse: $(BUILD_DIR)/.fuse
 gguf: $(BUILD_DIR)/.gguf
 
 build/.venv: requirements.txt
-	mkdir -p build
+	@mkdir -p build
 	python3 -m venv .venv
 	.venv/bin/pip install -r requirements.txt
 	touch build/.venv
 
 build/.submodules:
-	mkdir -p build
+	@mkdir -p build
 	git submodule update --init
 	touch build/.submodules
 
 build/.venv-llama: build/.submodules llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
-	mkdir -p build
+	@mkdir -p build
 	python3.10 -m venv llama.cpp/.venv
 	llama.cpp/.venv/bin/pip install -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
 	touch build/.venv-llama
 
 $(BUILD_DIR)/data/train.jsonl: build/.venv $(BUILD_DIR)/.corpus-params $(INPUT) $(CORPUS_SCRIPT)
-	mkdir -p $(BUILD_DIR)/data
+	@mkdir -p $(BUILD_DIR)/data
 	. .venv/bin/activate && python3 $(CORPUS_SCRIPT) $(INPUT) $(BUILD_DIR)/data/train.jsonl --window $(WINDOW) --valid-split $(VALID_SPLIT)
 
 $(BUILD_DIR)/.train: $(BUILD_DIR)/data/train.jsonl $(BUILD_DIR)/.train-params
-	mkdir -p $(BUILD_DIR)/adapters
+	@mkdir -p $(BUILD_DIR)/adapters
 	@date +%s > $(BUILD_DIR)/.train-start
 	. .venv/bin/activate && mlx_lm.lora \
 	  --model $(BASE_MODEL) \
@@ -138,7 +137,7 @@ $(BUILD_DIR)/.train: $(BUILD_DIR)/data/train.jsonl $(BUILD_DIR)/.train-params
 	touch $(BUILD_DIR)/.train
 
 $(BUILD_DIR)/.fuse: $(BUILD_DIR)/.train
-	mkdir -p $(BUILD_DIR)/model
+	@mkdir -p $(BUILD_DIR)/model
 	. .venv/bin/activate && mlx_lm.fuse \
 	  --model $(BASE_MODEL) \
 	  --adapter-path $(BUILD_DIR)/adapters \
@@ -149,7 +148,7 @@ $(BUILD_DIR)/.fuse: $(BUILD_DIR)/.train
 	touch $(BUILD_DIR)/.fuse
 
 $(BUILD_DIR)/.gguf: $(BUILD_DIR)/.fuse build/.venv-llama
-	mkdir -p $(BUILD_DIR)/gguf
+	@mkdir -p $(BUILD_DIR)/gguf
 	. llama.cpp/.venv/bin/activate && python llama.cpp/convert_hf_to_gguf.py \
 	  $(BUILD_DIR)/model --outfile $(BUILD_DIR)/gguf/bantz-model.gguf
 	touch $(BUILD_DIR)/.gguf
