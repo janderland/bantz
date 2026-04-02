@@ -78,8 +78,8 @@ help:
 
 deps:
 	@missing=""; \
-	command -v ollama     >/dev/null 2>&1 || missing="$$missing ollama"; \
 	command -v python3.10 >/dev/null 2>&1 || missing="$$missing python@3.10"; \
+	command -v ollama     >/dev/null 2>&1 || missing="$$missing ollama"; \
 	command -v jq         >/dev/null 2>&1 || missing="$$missing jq"; \
 	if [ -z "$$missing" ]; then \
 		printf 'All dependencies are installed.\n'; \
