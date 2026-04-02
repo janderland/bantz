@@ -1,17 +1,9 @@
-# Name of the bot version to build. Each version gets its own build directory
-# and Ollama model name (bantz-VERSION). Version-specific parameters are loaded
-# from versions/$(VERSION).mk if it exists.
-VERSION ?= default
+VERSION ?= default   # Name of the bot version to build. Each version gets its own
+                     # build directory and Ollama model name (bantz-VERSION).
+                     # Version-specific parameters are loaded from
+                     # versions/$(VERSION).mk if it exists.
 
--include versions/$(VERSION).mk
-
-# Scripts used for each pipeline stage. Override in versions/$(VERSION).mk to
-# use version-specific scripts.
-CORPUS_SCRIPT ?= scripts/corpus.py
-CHAT_SCRIPT   ?= scripts/chat.py
-PROMPT_SCRIPT ?= scripts/prompt.py
-
-INPUT ?= input.md   # Chat log to parse into training data.
+INPUT ?= input.md    # Chat log to parse into training data.
 
 BASE_MODEL ?= mlx-community/Llama-3.2-3B-Instruct  # HuggingFace model to fine-tune. This must
                                                    # be a HuggingFace model ID in the format
@@ -58,6 +50,15 @@ MAX_TOPICS ?= 50      # Max number of high-anomaly words to consider when
                       # generating the prompt.
 
 BUILD_DIR = build/$(strip $(VERSION))
+
+# Scripts used for each pipeline stage. Override in versions/$(VERSION).mk to
+# use version-specific scripts.
+CORPUS_SCRIPT ?= scripts/corpus.py
+CHAT_SCRIPT   ?= scripts/chat.py
+PROMPT_SCRIPT ?= scripts/prompt.py
+
+# Include the overriden values for the selected version.
+-include versions/$(VERSION).mk
 
 .PHONY: help all deps corpus train fuse gguf run prompt test versions clean clean-all FORCE
 
