@@ -1,0 +1,79 @@
+# Bantz test prompts — one per line, # for comments
+# Each prompt is the opening message of a conversation, formatted as
+# "Speaker: message" to match the training data format.
+# Add more prompts to grow the test suite.
+
+# --- General topics ---
+Jander: what should we cook for dinner tonight
+Abhi: anyone have plans this weekend
+CoreySimons: I just watched a movie last night, it was really good
+Dave: has the weather been weird for anyone else lately
+Ivan: ok I started a new show and I can't stop watching it
+JustinKoh: what have you guys been listening to lately
+RomanMatiasko: something funny happened at work today
+TaylorTroesh: we should try that new restaurant that opened downtown
+W: I'm going on vacation next month, pretty excited
+Jander: I finally finished that book I've been reading forever
+Abhi: I've been playing this game nonstop, it's so good
+CoreySimons: thinking about doing some home improvement stuff, any advice
+Dave: it's someone's birthday coming up, what should we do
+Ivan: did you guys watch the game last night
+JustinKoh: I picked up a new hobby recently and I'm obsessed
+RomanMatiasko: what's the best coffee shop around here, I need a new spot
+TaylorTroesh: what is everyone doing for the holidays
+W: I've been listening to this podcast on repeat
+Jander: working from home is making me lose my mind
+Abhi: thinking about doing a road trip, anyone want to come
+
+# --- Opinion and debate starters ---
+CoreySimons: hot take: remote work is better than going into the office
+Dave: ok genuinely asking, does pineapple belong on pizza or not
+Ivan: unpopular opinion but I actually like Mondays
+JustinKoh: is it worth paying more for a nicer apartment or just save the money
+RomanMatiasko: tabs or spaces, this is important
+TaylorTroesh: morning person or night owl, which is actually better
+W: is social media making everyone miserable or is that just me
+Jander: I don't think coffee actually does anything for me anymore
+Abhi: I think that movie was totally overrated, fight me
+CoreySimons: I think they're going to have a terrible season
+
+# --- Short openers ---
+Dave: thoughts?
+Ivan: ok so
+JustinKoh: anyone else
+RomanMatiasko: this is unrelated but
+TaylorTroesh: wait actually
+W: not to be dramatic but
+Jander: I can't decide
+Abhi: so this happened
+
+# --- Personal news and updates ---
+CoreySimons: I just got back from my trip, a lot happened
+Dave: I'm seriously considering quitting my job and traveling for a year
+Ivan: trying to decide between two apartments, can I get some opinions
+JustinKoh: we should do a camping trip, who's in
+RomanMatiasko: I just adopted a dog and have no idea what I'm doing
+TaylorTroesh: I tried cooking something new and it did not go well
+W: I'm thinking about going back to school, not sure if it's worth it
+Jander: ok we need to figure out a group Halloween costume
+Abhi: I got some news at work today, good news actually
+CoreySimons: I heard something and I don't know if I should say anything
+
+# --- Prompts likely to trigger quoting ---
+Dave: wait didn't you say earlier that you hated that
+Ivan: I'm going to need someone to explain what they meant by that
+JustinKoh: ok I want to revisit something from before
+RomanMatiasko: you literally just contradicted yourself
+TaylorTroesh: I agree with what someone said earlier
+W: can we go back to what was said about that
+Jander: that's not what you said before though
+Abhi: someone said something earlier that I can't stop thinking about
+CoreySimons: I want to push back on that
+Dave: that's exactly my point, thank you
+
+# --- Longer scene setters ---
+Ivan: ok so I've been thinking a lot about where I want to be in five years and I honestly have no idea
+JustinKoh: we haven't talked in a while and I have a lot of updates
+RomanMatiasko: alright I need help planning this thing, it's gotten complicated
+TaylorTroesh: this conversation started about one thing and now I don't even know what we're talking about
+W: ok who wants to hear my most embarrassing story
